@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueryBuddy</title>
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/chat.css" />
+    <link rel="icon" href="/assets/QueryBuddy.png" />
+  </head>
+  <body>
+    <section class="messages">
+      
+    </section>
+    <section class="toolbar">
+      <div class="input-parent">
+        <div class="upload-button">
+          <input id="upload" type="checkbox" class="upload-check">
+          <div class="upload-iframe">
+            <iframe frameborder="0" src="/upload.html?hasParent=true"></iframe>
+          </div>
+        </div>
+        <textarea class="input" type="text" placeholder="Type a message..." rows="1"></textarea>
+        <div class="options">
+          <input class="dictate" id="chkSpeak" type="checkbox" icon>
+          <label tabindex="0" class="dictate" for="chkSpeak" icon></label>
+          <select id="selLang">
+            <option value="en-US">English (US)</option>
+            <option value="fr-FR">French (FR)</option>
+            <option value="ru-RU">Russian (RU)</option>
+            <option value="pt-BR">Portuguese (BR)</option>
+            <option value="es-ES">Spanish (ES)</option>
+            <option value="de-DE">German (DE)</option>
+            <option value="it-IT">Italian (IT)</option>
+            <option value="pl-PL">Polish (PL)</option>
+            <option value="nl-NL">Dutch (NL)</option>
+          </select>
+        </div>
+        <button class="send-btn"></button>
+      </div>
+    </section>
+    <script src="/apps.js"></script>
+    <script src="/chat2.js"></script>
+    <script src="/chat.js"></script>
+  </body>
+</html>

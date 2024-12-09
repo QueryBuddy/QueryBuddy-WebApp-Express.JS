@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.message {
+  display: flex;
+  padding: 12.5px;
+  gap: 25px;
+
+  :first-child {
+    margin-top: 0;
+  }
+  :last-child {
+    margin-bottom: 0;
+  }
+
+  &.ai {
+    background-color: #10a37f;
+  }
+  &.error {
+    background-color: #D00;
+    color: #FFF;
+  }
+  &.warning {
+    background-color: #FFBB00;
+  }
+  &.box {
+    &.appInfo {
+      background-color: green;
+    }
+    &.info {
+      background-color: skyblue;
+    }
+    &.alert {
+      background-color: #FFEE00;
+    }
+  }
+  &.app {
+    background: var(--app-color, lightgreen)
+  }
+  
+  .image {
+    height: 37.5px;
+    aspect-ratio: 1;
+    clip-path: circle();
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  &.ai > .image {
+    background-image: url('/assets/CamGPT.svg');
+  }
+  &.app > .image {
+    background-image: var(--app-logo, url('/assets/app.svg'))
+  }
+  &.user > .image {
+    background-image: url('/icons/user.svg');
+  }
+  .text {
+    flex: 1;
+  }
+  .chat-imgs {
+    margin-top: 12.5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+.input-image {
+  max-height: 250px;
+  border-radius: 5px;
+}
+
+.toolbar {
+  position: relative;
+  
+  box-sizing: border-box;
+  padding: 12.5px;
+
+  min-height: 50px;
+}
+
+.input-parent {
+  box-sizing: border-box;
+  padding: 12.5px;
+  
+  min-height: 100%;
+  
+  border-radius: 100vh;
+  border: solid 1px black;
+  
+  display: flex;
+  gap: 10px;
+  /* overflow: hidden; */
+
+  .upload-button {
+    width: fit-content;
+    aspect-ratio: 1;
+    border: inherit;
+    border-width: 0;
+
+    .upload-check {
+      margin: 0;
+      height: 100%;
+      aspect-ratio: 1;
+
+      background-image: url('/icons/plus.svg');
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+  }
+  
+    
+    .upload-check:not(:checked) + .upload-iframe {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .upload-iframe {
+      position: absolute;
+      left: 25px;
+      bottom: 100%;
+
+      background: white;
+
+      border-radius: 10px;
+      border: inherit;
+      border-width: 1px;
+
+      transition: opacity 0.5s ease-out;
+
+      iframe {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+  
+  .input {
+    flex: 1;
+    height: 100%;
+    resize: none;
+    border: none;
+    outline: none;
+    background-color: transparent;
+  }
+}
+
+.options {
+  display: flex;
+  gap: 5px;
+  
+  & input.dictate[icon] {
+    display: none;
+    pointer-events: none;
+    & + label.dictate[icon] {
+      background-image: url('/icons/mic-off.svg');
+    }
+    &:checked + label.dictate[icon] {
+      background-image: url('/icons/mic.svg');
+    }
+  }
+  & label.dictate[icon] {
+    scale: 1.25;
+    margin-right: 2.5px;
+    height: 1lh;
+    aspect-ratio: 1;
+    background-size: contain;
+    background-position: center;
+    background-repeat: none;
+    cursor: pointer;
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 1.25px black;
+      border-radius: 2px;
+    }
+  }
+}
+
+.send-btn {
+  margin-left: 10px;
+  height: 20px;
+  aspect-ratio: 1;
+  border: none;
+  background-color: transparent;
+  scale: 1.5;
+  transform-origin: right center;
+  background-image: url('/icons/send.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 1px black;
+    border-radius: 2px;
+  }
+}
