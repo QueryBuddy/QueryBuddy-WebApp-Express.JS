@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/chat.css" />
     <link rel="icon" href="/assets/QueryBuddy.png" />
+    <script src="/userdata.js"></script>
   </head>
   <body>
     <section class="messages">
@@ -13,16 +14,16 @@
     <section class="toolbar">
       <div class="input-parent">
         <div class="upload-button">
-          <input id="upload" type="checkbox" class="upload-check">
+          <input title="Upload File" id="upload" type="checkbox" class="upload-check">
           <div class="upload-iframe">
-            <iframe frameborder="0" src="/upload.html?hasParent=true"></iframe>
+            <iframe title="Upload File Here" frameborder="0" src="/upload.html?hasParent=true"></iframe>
           </div>
         </div>
         <textarea class="input" type="text" placeholder="Type a message..." rows="1"></textarea>
         <div class="options">
-          <input class="dictate" id="chkSpeak" type="checkbox" icon>
+          <input title="Dictate" class="dictate" id="chkSpeak" type="checkbox" icon>
           <label tabindex="0" class="dictate" for="chkSpeak" icon></label>
-          <select id="selLang">
+          <select title="Set Language" id="selLang">
             <option value="en-US">English (US)</option>
             <option value="fr-FR">French (FR)</option>
             <option value="ru-RU">Russian (RU)</option>
@@ -34,7 +35,7 @@
             <option value="nl-NL">Dutch (NL)</option>
           </select>
         </div>
-        <button class="send-btn"></button>
+        <button title="Send Message" class="send-btn"></button>
       </div>
     </section>
     <script src="/apps.js"></script>

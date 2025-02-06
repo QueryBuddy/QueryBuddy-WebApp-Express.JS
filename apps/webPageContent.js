@@ -18,40 +18,41 @@ function getContent(req, res) {
       if (!!body) {
         if (scope2 !== 'none') {
           var dom = new jsdom.JSDOM(body);
-          body = dom.window.document.querySelector(scope2)
-          if (body.outerHTML === '<body>\n</body>') {
+
+          if (dom.window.document.querySelector(scope2).querySelectorAll('*').length < 1) {
             body = 'ERROR: Unable to get contents of the requested page. Please check the URL and try again.'
-          }
-          else {
-            body = body.outerHTML
+            res.send(body)
+            return
           }
           
-          var matches = [
-            /<style>.+<\/style>/, 
-            /<style.+>.+<\/style>/, 
-            /<script>.+<\/script>/, 
-            /<script.+>.+<\/script>/, 
-            /<svg.+>.+<\/svg>/, 
-            /<link.+>/, 
+          body = dom.window.document.querySelector(scope2)
+
+          
+          var selectors = [
+            'style',
+            'script',
+            'script',
+            // 'svg.+',
+            'link',
           ]
 
-          matches.forEach(function(m, i) {
-            var mS = body.match(m)
-            if (mS) {
-              mS.forEach(function(em, i) {
-                body = body.split(em).join('')
-              })
-            }
+          selectors.forEach(s => {
+            var matches = body.querySelectorAll(s)
+            matches.forEach(m => {
+              m.remove()
+            })
           })
-        
+
+          body = body.innerHTML
           if (body.includes('<')) body = body.split('<').join('&lt;')
           if (body.includes('>')) body = body.split('>').join('&gt;')
+          
+          res.send(`<pre>${body}</pre>`)
         }
         else {
           body = 'ERROR'
+          res.send(body)
         }
-
-        res.send(`<pre>${body}</pre>`)
       }
     });
 }

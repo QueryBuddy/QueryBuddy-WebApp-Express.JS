@@ -4,7 +4,7 @@ var appsList = [
   'openLink'
 ]
 
-const appsData = {
+var appsData = {
   weather: function(params) {
     var zip = params[0]
     var country = ''

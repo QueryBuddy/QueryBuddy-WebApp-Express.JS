@@ -1,20 +1,21 @@
 import newRequest from './request.js'
 
 function host(app) {
-  app.get('/sendRequest', function(req, res) {
-    var prompt = req.query.p
-    var type = req.query.t
-    var urls = req.query.urls
-    var voice = req.query.v
-    var systemId = req.query.systemid
-    var startingMessage = req.query.startingmessage
+  app.post('/sendRequest', function(req, res) {
+    var userId = req.body.userid
+    var prompt = req.body.p
+    var type = req.body.t
+    var urls = req.body.urls
+    var voice = req.body.v
+    var systemId = req.body.systemid
+    var startingMessage = req.body.startingmessage
     prompt = decodeURIComponent(prompt)
     if (!!urls) {
       if (urls.includes(',')) urls = urls.split(',')
       else urls = [urls]
     }
     newRequest(
-      res, prompt, type, urls=urls, voice=voice,
+      res, userId, prompt, type, urls=urls, voice=voice,
       systemId=systemId, startingMessage=startingMessage
     )
   })

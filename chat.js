@@ -229,7 +229,7 @@ window.addEventListener('DOMContentLoaded', function (e) {
   sendBtn.addEventListener('click', checkForSend)
 });
 
-function newRequest(type, prompt, urls, voice, filelocation, messageType, moreParams) {
+async function newRequest(type, prompt, urls, voice, filelocation, messageType, moreParams) {
   if (type == 'create-image') {
     if (prompt.includes(' \n ')) {
       prompt = prompt.split(' \n ').join(' ')
@@ -244,74 +244,80 @@ function newRequest(type, prompt, urls, voice, filelocation, messageType, morePa
       prompt = prompt.split('\n').join(' ')
     }
   }
-  var reqUrl = `/sendRequest?t=${type}`
-  if (type == 'image' && !!urls) reqUrl += `&urls=${urls}`
-  if (!!filelocation) reqUrl += `&fl=${filelocation}`
-  if (!!systemId) reqUrl += `&systemid=${systemId}`
-  if (!!voice) reqUrl += `&systemid=${voice}`
+
+  var reqObj = {userid: userId || null, type: type}
+
+  if (type == 'image' && !!urls) reqObj.urls = urls
+  if (!!filelocation) reqObj.fl = filelocation
+  if (!!systemId) reqObj.systemid = systemId
+  if (!!voice) reqObj.systemid = voice
     if (messageType == 'box') {
     if (!!moreParams) {
       if (!!moreParams.name) {
         if (moreParams.name == 'welcome') {
-          reqUrl += `&startingmessage=true`
+          reqObj.startingmessage = true
         }
       }
     }
   }
   prompt = encodeURIComponent(prompt)
-  reqUrl += `&p=${prompt}`
+  reqObj.p = prompt
   
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', reqUrl);
-  xhr.addEventListener('load', function () {
-    var output = this.responseText;
-    var role = 'ai'
-    if (messageType) role = messageType
-    if (
-      (
-        output.startsWith('{') && 
-        output.endsWith('}')
-      ) || 
-      (
-        output.startsWith('[') && 
-        output.endsWith(']')
-      )
-    ) {
-      output = JSON.parse(output)
-    }
-    if (typeof output === 'object') {
-      role = output.status.toLowerCase()
-      if (role === 'ok') role = 'ai'
-      else if (role === 'appok') {
-        messageType = 'box'
-        moreParams = {variation: 'appInfo', isApp: true}
-      }
-      else if (role === 'error') {}
-      else if (messageType !== 'box') {
-        messageType = 'box'
-        moreParams = {variation: role}
-      }
-      output = output.content
-    }
-    
-    switch (type) {
-      case 'create-image':
-        output = `<img src="${output}" alt="Generated Image">` 
-        break;
-      case 'create-audio': 
-        output = `<video src="${output}" alt="Generated Audio" autoplay>` 
-        break;
-    }
-    
-    if (messageType === 'box') {
-      newMessage(messageType, output, moreParams)
-    }
-    else {
-      newMessage(role, output, moreParams)
-      lastAnswer = output
-    }
+  var response = await fetch('/sendRequest', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(reqObj),
   });
-  xhr.send();
+
+  var output = await response.text()
+
+  var role = 'ai'
+  if (messageType) role = messageType
+  if (
+    (
+      output.startsWith('{') && 
+      output.endsWith('}')
+    ) || 
+    (
+      output.startsWith('[') && 
+      output.endsWith(']')
+    )
+  ) {
+    output = JSON.parse(output)
+  }
+  if (typeof output === 'object') {
+    role = output.status.toLowerCase()
+    if (role === 'ok') role = 'ai'
+    else if (role === 'appok') {
+      messageType = 'box'
+      moreParams = {variation: 'appInfo', isApp: true}
+    }
+    else if (role === 'error') {}
+    else if (messageType !== 'box') {
+      messageType = 'box'
+      moreParams = {variation: role}
+    }
+    output = output.content
+  }
+  
+  switch (type) {
+    case 'create-image':
+      output = `<img src="${output}" alt="Generated Image">` 
+      break;
+    case 'create-audio': 
+      output = `<video src="${output}" alt="Generated Audio" autoplay>` 
+      break;
+  }
+  
+  if (messageType === 'box') {
+    newMessage(messageType, output, moreParams)
+  }
+  else {
+    newMessage(role, output, moreParams)
+    lastAnswer = output
+  }
 }
 
 function newMessage(role, content, moreParams) {

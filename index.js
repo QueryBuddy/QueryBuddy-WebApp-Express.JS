@@ -1,5 +1,7 @@
 var fName = ''
 
+import 'dotenv/config'
+
 import cors from 'cors'
 import express from 'express'
 var app = express()
@@ -9,6 +11,7 @@ import path from 'path'
 import multer from 'multer'
 
 import hostRequestEndpoint from './hostRequest.js'
+import hostUserIdEndpoints from './hostUserIds.js'
 
 import config from './config.js'
 var appsList = config.appsList
@@ -58,6 +61,8 @@ var upload = multer({
   }
   // mypic is the name of file attribute
 }).single("image");
+
+app.use(express.json())
 
 // User inputs
 app.get('/', function(req, res) {
@@ -151,6 +156,8 @@ app.get('/viewImage', function(req, res) {
   res.send(viewImage)
 })
 
+app = hostUserIdEndpoints(app)
+
 app.get('*', function(req, res) {
   var path = req.path
   if (path.startsWith('/')) path = path.slice(1)
@@ -162,6 +169,6 @@ app.get('*', function(req, res) {
   res.sendFile(path, {root: '.'})
 })
 
-app.listen(8080, function() {
-  console.log('Server started on port 8080')
+app.listen(3000, function() {
+  console.log('Server started on port 3000')
 })

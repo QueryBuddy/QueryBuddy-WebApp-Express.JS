@@ -12,6 +12,9 @@ const openai = new OpenAI(api_key);
 
 import config from './config.js'
 
+import addToUserConversation from './userId/add.js'
+import getUserConversation from './userId/get.js'
+
 var systemPrompt = config.systemPrompt
 var checkPrompt = config.checkPrompt;
 var errorCheck = config.errorCheck;
@@ -19,7 +22,10 @@ var errorCheck = config.errorCheck;
 var defaultId = config.defaultSystemId;
 var appsList = config.appsList;
 
-function newRequest(res, prompt, type, urls, voice, systemId) {
+function newRequest(res, userId, prompt, type, urls, voice, systemId, startingMessage) {
+  var userConversation = getUserConversation(userId)
+  if (!startingMessage) addToUserConversation(userId, 'user', prompt, type)
+
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${api_key}`,
@@ -28,42 +34,50 @@ function newRequest(res, prompt, type, urls, voice, systemId) {
   switch (type) {
     case 'create-image': 
       var model = `dall-e-${3}`
-      imageRequest(headers, res, prompt, model)
+      imageRequest(headers, res, userId, userConversation, prompt, model, startingMessage)
       break;
     case 'create-audio':
       var model = `tts-${1}-hd`
-      audioRequest(res, prompt, voice, model)
+      audioRequest(res, userId, userConversation, prompt, voice, model, startingMessage)
       break;
     case 'transcribe-audio': 
       var path = `/temp/${prompt}`
       var model = `whisper-${1}`
-      transcriptionRequest(path, res, model)
+      transcriptionRequest(path, userId, userConversation, res, model, startingMessage)
       break;
     default:
       var model = `gpt-${4}o`
-      textRequest(res, prompt, model, type, urls, systemId)
+      textRequest(res, userId, userConversation, prompt, model, type, urls, systemId, startingMessage)
       break;
   }
 }
 
-async function newCompletion(prompt, model, useSystem=true) {
+async function newCompletion(userId, userConversation, prompt, model, type, useSystem=true, startingMessage) {
   var messages = []
   if (systemPrompt && useSystem) {
     messages.push({"role": "system", "content": systemPrompt})
   }
+  var uMessages = userConversation.messages
+  uMessages.forEach(m => {
+    messages.push({"role": m.actor, "content": m.content})
+  })
+
   messages.push({"role": "user", "content": prompt})
 
   const completion = await openai.chat.completions.create({
     messages: messages,
     model: model,
   });
-  return completion.choices[0].message.content
+
+  const content = completion.choices[0].message.content
+  if (!startingMessage) addToUserConversation(userId, 'assistant', content, type)
+  return content
 }
 
-async function textRequest(res, prompt, model, type, urls, systemId) {
+async function textRequest(res, userId, userConversation, prompt, model, type, urls, systemId, startingMessage) {
   if (!!systemId === false) systemId = defaultId
 
-  var output = await newCompletion(prompt, model, true)
+  var output = await newCompletion(userId, userConversation, prompt, model, type, true, startingMessage)
   
   if (checkPrompt.includes('{userPrompt}')) {
     if (prompt.includes(systemId)) {
@@ -103,7 +117,7 @@ async function textRequest(res, prompt, model, type, urls, systemId) {
     res.send({status: 'appOK', content: currentApp})
   }
   else {
-    var cOutput = newCompletion(checkPrompt, model, false)
+    var cOutput = newCompletion(userId, userConversation, checkPrompt, model, type, false, startingMessage)
     if (cOutput === 'good') {
       output = marked.parse(output)
       res.send({status: 'OK', content: output})
@@ -112,7 +126,7 @@ async function textRequest(res, prompt, model, type, urls, systemId) {
       if (errorCheck.includes('{errorMessage}')) {
         errorCheck = errorCheck.replace('{errorMessage}', output)
       }
-      output = newCompletion(errorCheck, model, false)
+      output = newCompletion(userId, userConversation, errorCheck, model, type, false, startingMessage)
       res.send({status: 'Error', content: output})
     }
     else {
@@ -122,7 +136,7 @@ async function textRequest(res, prompt, model, type, urls, systemId) {
   }
 }
 
-function imageRequest(headers, res, prompt, model) {
+function imageRequest(headers, res, userId, userConversation, prompt, model, startingMessage) {
   const payload = {
     model: model,
     prompt: prompt,
@@ -147,6 +161,7 @@ function imageRequest(headers, res, prompt, model) {
         data.forEach(function (d) {
           url = d["url"];
           var status = url.includes('://') ? 'Success' : 'Error'
+          if (!startingMessage) addToUserConversation(userId, 'image_url', url, 'create-image')
           res.send({status: status, content: url});
         });
       }
@@ -154,7 +169,7 @@ function imageRequest(headers, res, prompt, model) {
   );
 }
 
-async function audioRequest(res, prompt, voice, model) {
+async function audioRequest(res, userId, userConversation, prompt, voice, model, startingMessage) {
   var fname = './speech.mp3'
   const speechFile = path.resolve(fname);
 
@@ -170,12 +185,13 @@ async function audioRequest(res, prompt, voice, model) {
   res.send(fname)
 }
 
-async function transcriptionRequest(path, res, model) {
+async function transcriptionRequest(path, userId, userConversation, res, model, startingMessage) {
   const transcription = await openai.audio.transcriptions.create({
     file: fs.createReadStream(path),
     model: model,
   });
 
+  if (!startingMessage) addToUserConversation(userId, 'transcription', transcription.text, 'transcribe-audio')
   res.send({status: 'OK', content: transcription.text});
 }
 
