@@ -63,7 +63,7 @@ body {
     background-repeat: no-repeat;
   }
   &.ai > .image {
-    background-image: url('/assets/CamGPT.svg');
+    background-image: url('/assets/QueryBuddy.svg');
   }
   &.app > .image {
     background-image: var(--app-logo, url('/assets/app.svg'))
