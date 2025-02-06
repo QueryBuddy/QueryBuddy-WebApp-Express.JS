@@ -78,7 +78,6 @@ function addToPrompt(prompt) {
 }
 
 function sendMessage(prompt, type, showUserMessage=true) {
-  chatElement.disabled = true
   sendBtn.onclick = function() {}
   if (!!prompt === false) prompt = chatElement.value
 
@@ -230,6 +229,8 @@ window.addEventListener('DOMContentLoaded', function (e) {
 });
 
 async function newRequest(type, prompt, urls, voice, filelocation, messageType, moreParams) {
+  chatElement.disabled = true
+
   if (type == 'create-image') {
     if (prompt.includes(' \n ')) {
       prompt = prompt.split(' \n ').join(' ')
