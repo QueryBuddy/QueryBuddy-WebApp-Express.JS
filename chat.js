@@ -371,7 +371,7 @@ function newMessage(role, content, moreParams) {
     var prevContent = ''
     if (!!content) {
       doActs();
-      interval = setInterval(doActs, 50);
+      interval = setInterval(doActs, 1);
     }
     else {
       textSpan.innerHTML = 'Unknown Error'
