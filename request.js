@@ -23,7 +23,7 @@ var defaultId = config.defaultSystemId;
 var appsList = config.appsList;
 
 function newRequest(res, userId, prompt, type, urls, voice, systemId, startingMessage) {
-  if (getUserStatus(userId).status === 'inactive') changeUserStatus(userId, 'active')
+  if (!getUserStatus(userId).status || getUserStatus(userId).status === 'inactive') changeUserStatus(userId, 'active')
 
   const headers = {
     "Content-Type": "application/json",
