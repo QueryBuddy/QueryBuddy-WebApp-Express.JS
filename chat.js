@@ -172,11 +172,6 @@ function handleFiles() {
 }
 
 window.addEventListener('DOMContentLoaded', function (e) {
-  newRequest(
-    'text', startingPrompt, null, null, null, 
-    'box', {variation: 'info', name: 'welcome'}
-  )
-  
   queryString = window.location.search;
   urlParams = new URLSearchParams(queryString);
   filelocation = urlParams.get('filelocation');
@@ -226,6 +221,11 @@ window.addEventListener('DOMContentLoaded', function (e) {
   sendBtn = chatElement.parentNode.querySelector('.send-btn')
   checkForSend = function(e) { if (chatElement.value !== '') sendMessage() }
   sendBtn.addEventListener('click', checkForSend)
+
+  newRequest(
+    'text', startingPrompt, null, null, null, 
+    'box', {variation: 'info', name: 'welcome'}
+  )
 });
 
 async function newRequest(type, prompt, urls, voice, filelocation, messageType, moreParams) {

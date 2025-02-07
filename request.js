@@ -24,6 +24,7 @@ var appsList = config.appsList;
 
 function newRequest(res, userId, prompt, type, urls, voice, systemId, startingMessage) {
   if (!getUserStatus(userId).status || getUserStatus(userId).status === 'inactive') changeUserStatus(userId, 'active')
+  // console.log(getUserStatus(userId))
 
   const headers = {
     "Content-Type": "application/json",
@@ -76,14 +77,29 @@ async function newCompletion(userId, prompt, model, type, useSystem=true, starti
     }
   );
 
-  var run = await openai.beta.threads.runs.createAndPoll(
-    threadId,
-    { 
-      assistant_id: config.assistantId,
-      instructions: systemPrompt
-    }
+  var allRuns = await openai.beta.threads.runs.list(
+    threadId
   );
+
+  var hasActiveRun = allRuns.data.filter(run => run.status === 'running').length > 0
+
+  var run
+  if (!hasActiveRun) {
+    run = await openai.beta.threads.runs.createAndPoll(
+      threadId,
+      { 
+        assistant_id: config.assistantId,
+        instructions: systemPrompt
+      }
+    );
+  }
+  else {
+    run = await openai.beta.threads.runs.retrieve(
+      threadId,
+      allRuns.body.last_id
+    );
   
+  }
   
   if (run.status === 'completed') {
     const messages = await openai.beta.threads.messages.list(
@@ -106,6 +122,22 @@ async function newCompletion(userId, prompt, model, type, useSystem=true, starti
   } else {
     return {status: 'waiting', message: run.status}
   }
+}
+
+async function newMessage(userId, prompt, model, type, useSystem=true, startingMessage) {
+  var messages = []
+  if (systemPrompt && useSystem) {
+    messages.push({"role": "system", "content": systemPrompt})
+  }
+
+  messages.push({"role": "user", "content": prompt})
+
+  const completion = await openai.chat.completions.create({
+    messages: messages,
+    model: model,
+  });
+
+  return completion.choices[0].message.content
 }
 
 async function textRequest(res, userId, prompt, model, type, urls, systemId, startingMessage) {
@@ -151,7 +183,7 @@ async function textRequest(res, userId, prompt, model, type, urls, systemId, sta
     res.send({status: 'appOK', content: currentApp})
   }
   else {
-    var cOutput = newCompletion(userId, checkPrompt, model, type, false, startingMessage)
+    var cOutput = newMessage(userId, checkPrompt, model, type, false, startingMessage)
     if (cOutput === 'good') {
       output = marked.parse(output)
       res.send({status: 'OK', content: output})
@@ -160,7 +192,7 @@ async function textRequest(res, userId, prompt, model, type, urls, systemId, sta
       if (errorCheck.includes('{errorMessage}')) {
         errorCheck = errorCheck.replace('{errorMessage}', output)
       }
-      output = newCompletion(userId, errorCheck, model, type, false, startingMessage)
+      output = newMessage(userId, errorCheck, model, type, false, startingMessage)
       res.send({status: 'Error', content: output})
     }
     else {
