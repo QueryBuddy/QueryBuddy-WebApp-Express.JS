@@ -23,8 +23,7 @@ function createId(req, res) {
     }
 
     fs.writeFileSync(`./userConversations/${id}.json`, JSON.stringify({
-        messages: [],
-        lastMessage: {},
+        status: 'inactive',
     }))
 
     res.json({ userid: id })
