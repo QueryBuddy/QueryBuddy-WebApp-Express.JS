@@ -12,17 +12,17 @@ function generateId() {
 }
 
 function createId(req, res) {
-    if (!fs.existsSync('./userConversations')) {
-        fs.mkdirSync('./userConversations')
+    if (!fs.existsSync('./userStatus')) {
+        fs.mkdirSync('./userStatus')
     }
 
     var id = generateId()
 
-    while (fs.existsSync(`./userConversations/${id}.json`)) {
+    while (fs.existsSync(`./userStatus/${id}.json`)) {
         id = generateId()
     }
 
-    fs.writeFileSync(`./userConversations/${id}.json`, JSON.stringify({
+    fs.writeFileSync(`./userStatus/${id}.json`, JSON.stringify({
         status: 'inactive',
     }))
 

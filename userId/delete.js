@@ -3,12 +3,12 @@ import fs from 'fs'
 function deleteId(req, res) {
     var id = req.body.userid
 
-    if (!fs.existsSync('./userConversations')) {
-        fs.mkdirSync('./userConversations')
+    if (!fs.existsSync('./userStatus')) {
+        fs.mkdirSync('./userStatus')
     }
 
-    if (fs.existsSync(`./userConversations/${id}.json`)) {
-        fs.unlinkSync(`./userConversations/${id}.json`)
+    if (fs.existsSync(`./userStatus/${id}.json`)) {
+        fs.unlinkSync(`./userStatus/${id}.json`)
         res.json({ message: 'deleted' })
     }
     else {
