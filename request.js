@@ -4,16 +4,12 @@ import path from 'path';
 
 import { marked } from 'marked'
 
-// OpenAI API Key
 var api_key = process.env.OPENAI_API_KEY
 
 import OpenAI from 'openai';
-const openai = new OpenAI(api_key);
+const openai = new OpenAI();
 
 import config from './config.js'
-
-import changeUserStatus from './userId/change.js'
-import getUserStatus from './userId/get.js'
 
 var systemPrompt = config.systemPrompt
 var checkPrompt = config.checkPrompt;
@@ -22,10 +18,7 @@ var errorCheck = config.errorCheck;
 var defaultId = config.defaultSystemId;
 var appsList = config.appsList;
 
-function newRequest(res, userId, prompt, type, urls, voice, systemId, startingMessage) {
-  if (!getUserStatus(userId).status || getUserStatus(userId).status === 'inactive') changeUserStatus(userId, 'active')
-  // console.log(getUserStatus(userId))
-
+function newRequest(res, threadId, prompt, type, urls, voice, systemId, startingMessage) {
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${api_key}`,
@@ -34,41 +27,25 @@ function newRequest(res, userId, prompt, type, urls, voice, systemId, startingMe
   switch (type) {
     case 'create-image': 
       var model = `dall-e-${3}`
-      imageRequest(headers, res, userId, prompt, model, startingMessage)
+      imageRequest(headers, res, threadId, prompt, model, startingMessage)
       break;
     case 'create-audio':
       var model = `tts-${1}-hd`
-      audioRequest(res, userId, prompt, voice, model, startingMessage)
+      audioRequest(res, threadId, prompt, voice, model, startingMessage)
       break;
     case 'transcribe-audio': 
       var path = `/temp/${prompt}`
       var model = `whisper-${1}`
-      transcriptionRequest(path, userId, res, model, startingMessage)
+      transcriptionRequest(path, threadId, res, model, startingMessage)
       break;
     default:
       var model = `gpt-${4}o`
-      textRequest(res, userId, prompt, model, type, urls, systemId, startingMessage)
+      textRequest(res, threadId, prompt, model, type, urls, systemId, startingMessage)
       break;
   }
 }
 
-async function newCompletion(userId, prompt, model, type, useSystem=true, startingMessage) {
-  if (!getUserStatus(userId).thread) {
-    const thread = await openai.beta.threads.create();
-    changeUserStatus(userId, 'active', thread.id)
-
-    const message = await openai.beta.threads.messages.create(
-      thread.id,
-      {
-        role: 'assistant',
-        content: 'Please first ask the user for their name, and address them as such.'
-      }
-    );
-  }
-
-  var userStatus = getUserStatus(userId)
-  var threadId = userStatus.thread
-
+async function newMessage(threadId, prompt, model, type, useSystem=true, startingMessage) {
   const message = await openai.beta.threads.messages.create(
     threadId,
     {
@@ -124,7 +101,7 @@ async function newCompletion(userId, prompt, model, type, useSystem=true, starti
   }
 }
 
-async function newMessage(userId, prompt, model, type, useSystem=true, startingMessage) {
+async function newCompletion(threadId, prompt, model, type, useSystem=true, startingMessage) {
   var messages = []
   if (systemPrompt && useSystem) {
     messages.push({"role": "system", "content": systemPrompt})
@@ -140,10 +117,12 @@ async function newMessage(userId, prompt, model, type, useSystem=true, startingM
   return completion.choices[0].message.content
 }
 
-async function textRequest(res, userId, prompt, model, type, urls, systemId, startingMessage) {
+async function textRequest(res, threadId, prompt, model, type, urls, systemId, startingMessage) {
   if (!!systemId === false) systemId = defaultId
 
-  var output = await newCompletion(userId, prompt, model, type, true, startingMessage)
+  var output
+  if (startingMessage) output = await newCompletion(threadId, prompt, model, type, true, startingMessage)
+  else output = await newMessage(threadId, prompt, model, type, true, startingMessage)
   
   if (checkPrompt.includes('{userPrompt}')) {
     if (prompt.includes(systemId)) {
@@ -183,7 +162,7 @@ async function textRequest(res, userId, prompt, model, type, urls, systemId, sta
     res.send({status: 'appOK', content: currentApp})
   }
   else {
-    var cOutput = newMessage(userId, checkPrompt, model, type, false, startingMessage)
+    var cOutput = newCompletion(threadId, checkPrompt, model, type, false, startingMessage)
     if (cOutput === 'good') {
       output = marked.parse(output)
       res.send({status: 'OK', content: output})
@@ -192,7 +171,7 @@ async function textRequest(res, userId, prompt, model, type, urls, systemId, sta
       if (errorCheck.includes('{errorMessage}')) {
         errorCheck = errorCheck.replace('{errorMessage}', output)
       }
-      output = newMessage(userId, errorCheck, model, type, false, startingMessage)
+      output = newCompletion(threadId, errorCheck, model, type, false, startingMessage)
       res.send({status: 'Error', content: output})
     }
     else {
@@ -202,7 +181,7 @@ async function textRequest(res, userId, prompt, model, type, urls, systemId, sta
   }
 }
 
-function imageRequest(headers, res, userId, prompt, model, startingMessage) {
+function imageRequest(headers, res, threadId, prompt, model, startingMessage) {
   const payload = {
     model: model,
     prompt: prompt,
@@ -234,7 +213,7 @@ function imageRequest(headers, res, userId, prompt, model, startingMessage) {
   );
 }
 
-async function audioRequest(res, userId, prompt, voice, model, startingMessage) {
+async function audioRequest(res, threadId, prompt, voice, model, startingMessage) {
   var fname = './speech.mp3'
   const speechFile = path.resolve(fname);
 
@@ -250,7 +229,7 @@ async function audioRequest(res, userId, prompt, voice, model, startingMessage) 
   res.send(fname)
 }
 
-async function transcriptionRequest(path, userId, res, model, startingMessage) {
+async function transcriptionRequest(path, threadId, res, model, startingMessage) {
   const transcription = await openai.audio.transcriptions.create({
     file: fs.createReadStream(path),
     model: model,

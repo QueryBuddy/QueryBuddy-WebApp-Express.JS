@@ -11,7 +11,7 @@ import path from 'path'
 import multer from 'multer'
 
 import hostRequestEndpoint from './hostRequest.js'
-import hostUserIdEndpoints from './hostUserIds.js'
+import hostThreadEndpoints from './hostThreads.js'
 
 import config from './config.js'
 var appsList = config.appsList
@@ -156,7 +156,7 @@ app.get('/viewImage', function(req, res) {
   res.send(viewImage)
 })
 
-app = hostUserIdEndpoints(app)
+app = hostThreadEndpoints(app)
 
 app.get('*', function(req, res) {
   var path = req.path

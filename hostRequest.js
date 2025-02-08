@@ -2,7 +2,7 @@ import newRequest from './request.js'
 
 function host(app) {
   app.post('/sendRequest', function(req, res) {
-    var userId = req.body.userid
+    var thread = req.body.thread
     var prompt = req.body.p
     var type = req.body.t
     var urls = req.body.urls
@@ -15,7 +15,7 @@ function host(app) {
       else urls = [urls]
     }
     newRequest(
-      res, userId, prompt, type, urls=urls, voice=voice,
+      res, thread, prompt, type, urls=urls, voice=voice,
       systemId=systemId, startingMessage=startingMessage
     )
   })
