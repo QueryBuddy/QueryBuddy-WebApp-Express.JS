@@ -1,18 +1,14 @@
-import OpenAI from 'openai';
-const openai = new OpenAI();
+import config from '../config.js'
+const models = config.models
 
-async function createId(req, res) {
-    const thread = await openai.beta.threads.create();
+async function createThread(req, res) {
+    var threads = {}
 
-    const message = await openai.beta.threads.messages.create(
-      thread.id,
-      {
-        role: 'assistant',
-        content: 'Please first ask the user for their name, and address them as such.'
-      }
-    );
+    Object.keys(models).forEach(async model => {
+        threads[model] = (await models[model].func).thread.create(req, res)
+    })
 
-    res.json({ thread: thread.id })
+    res.json(threads)
 }
 
-export default createId
+export default createThread

@@ -150,13 +150,37 @@ app.get('/viewImage', function(req, res) {
   var p = req.query.p
 
   var viewImage = fs.readFileSync('viewImage.html', 'utf8')
-  viewImage = viewImage.split('$[src]').join(url)
-  viewImage = viewImage.split('$[prompt]').join(p)
+  viewImage = viewImage.replaceAll('$[src]', url)
+  viewImage = viewImage.replaceAll('$[prompt]', p)
 
   res.send(viewImage)
 })
 
 app = hostThreadEndpoints(app)
+
+app.get('/chat', function(req, res) {
+  var fileContent = fs.readFileSync('chat.html', 'utf8')
+
+  var models = config.models
+
+  var mStr = ''
+
+  if (Object.keys(models).length > 0) {
+    Object.keys(models).forEach(key => {
+      var model = models[key]
+      mStr += `<option value="${key}">${key} (${model.provider.name})</option>`
+    })
+    mStr = `<select title="Select Model" id="model">${mStr}</select>`
+    fileContent = fileContent.replaceAll(/<selectModels>.*<\/selectModels>/g, mStr)
+    fileContent = fileContent.replaceAll('<selectModels />', mStr)
+  }
+  else {
+    fileContent = fileContent.replaceAll('<selectModels>', '')
+    fileContent = fileContent.replaceAll('</selectModels>', '')
+  }
+
+  res.send(fileContent)
+})
 
 app.get('*', function(req, res) {
   var path = req.path

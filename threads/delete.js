@@ -1,18 +1,14 @@
-import OpenAI from 'openai';
-const openai = new OpenAI();
+import config from '../config.js'
+const models = config.models
 
-async function deleteId(req, res) {
-    var id = req.body.thread
+async function deleteThread(req, res) {
+    var threads = {}
 
-    var thread = await openai.beta.threads.retrieve(id)
+    Object.keys(models).forEach(async model => {
+        threads[model] = (await models[model].func).thread.delete(req, res)
+    })
+  
+    res.json(threads)
+}
 
-    if (thread) {
-        var resp = await openai.beta.threads.del(id)
-        res.json(resp)
-    }
-    else {
-        res.json(thread)
-    }
-  }
-
-export default deleteId
+export default deleteThread

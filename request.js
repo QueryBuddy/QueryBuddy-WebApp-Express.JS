@@ -10,6 +10,9 @@ import OpenAI from 'openai';
 const openai = new OpenAI();
 
 import config from './config.js'
+import { start } from 'repl';
+
+var models = config.models
 
 var systemPrompt = config.systemPrompt
 var checkPrompt = config.checkPrompt;
@@ -45,85 +48,21 @@ function newRequest(res, threadId, prompt, type, urls, voice, systemId, starting
   }
 }
 
-async function newMessage(threadId, prompt, model, type, useSystem=true, startingMessage) {
-  const message = await openai.beta.threads.messages.create(
-    threadId,
-    {
-      role: "user",
-      content: prompt,
-    }
-  );
-
-  var allRuns = await openai.beta.threads.runs.list(
-    threadId
-  );
-
-  var hasActiveRun = allRuns.data.filter(run => run.status === 'running').length > 0
-
-  var run
-  if (!hasActiveRun) {
-    run = await openai.beta.threads.runs.createAndPoll(
-      threadId,
-      { 
-        assistant_id: config.assistantId,
-        instructions: systemPrompt
-      }
-    );
-  }
-  else {
-    run = await openai.beta.threads.runs.retrieve(
-      threadId,
-      allRuns.body.last_id
-    );
-  
-  }
-  
-  if (run.status === 'completed') {
-    const messages = await openai.beta.threads.messages.list(
-      run.thread_id
-    );
-
-    var output = messages.data.reverse()
-
-    output = output.pop().content
-
-    var text = []
-    
-    output.forEach(o => {
-      if (o.type === 'text') text.push(o.text.value)
-    })
-
-    text = text.join('\n\n---------------------------------------------------------------\n\n')
-
-    return text
-  } else {
-    return {status: 'waiting', message: run.status}
-  }
-}
-
-async function newCompletion(threadId, prompt, model, type, useSystem=true, startingMessage) {
-  var messages = []
-  if (systemPrompt && useSystem) {
-    messages.push({"role": "system", "content": systemPrompt})
-  }
-
-  messages.push({"role": "user", "content": prompt})
-
-  const completion = await openai.chat.completions.create({
-    messages: messages,
-    model: model,
-  });
-
-  return completion.choices[0].message.content
-}
-
 async function textRequest(res, threadId, prompt, model, type, urls, systemId, startingMessage) {
+  var modelObj = models[model]
+
   if (!!systemId === false) systemId = defaultId
 
   var output
-  if (startingMessage) output = await newCompletion(threadId, prompt, model, type, true, startingMessage)
-  else output = await newMessage(threadId, prompt, model, type, true, startingMessage)
+  if (startingMessage) {
+    output = await (await modelObj.func).completion(threadId, prompt, model, type, true, startingMessage)
+    output = marked.parse(output)
+    res.send({status: 'OK', content: output})
+    return
+  }
   
+  output = await (await modelObj.func).message(threadId, prompt, model, type, true, startingMessage)
+
   if (checkPrompt.includes('{userPrompt}')) {
     if (prompt.includes(systemId)) {
       prompt = prompt.split(systemId)
@@ -162,7 +101,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
     res.send({status: 'appOK', content: currentApp})
   }
   else {
-    var cOutput = newCompletion(threadId, checkPrompt, model, type, false, startingMessage)
+    var cOutput = await (await modelObj.func).message(threadId, checkPrompt, model, type, false, startingMessage)
     if (cOutput === 'good') {
       output = marked.parse(output)
       res.send({status: 'OK', content: output})
@@ -171,7 +110,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
       if (errorCheck.includes('{errorMessage}')) {
         errorCheck = errorCheck.replace('{errorMessage}', output)
       }
-      output = newCompletion(threadId, errorCheck, model, type, false, startingMessage)
+      output = await (await modelObj.func).completion(threadId, errorCheck, model, type, false, startingMessage)
       res.send({status: 'Error', content: output})
     }
     else {

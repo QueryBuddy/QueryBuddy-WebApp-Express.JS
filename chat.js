@@ -229,6 +229,8 @@ window.addEventListener('DOMContentLoaded', function (e) {
 });
 
 async function newRequest(type, prompt, urls, voice, filelocation, messageType, moreParams) {
+  var model = document.getElementById('model').value
+
   chatElement.disabled = true
 
   if (type == 'create-image') {
@@ -246,7 +248,7 @@ async function newRequest(type, prompt, urls, voice, filelocation, messageType, 
     }
   }
 
-  var reqObj = {thread: thread || null, type: type}
+  var reqObj = {thread: thread || null, type: type, model: model}
 
   if (type == 'image' && !!urls) reqObj.urls = urls
   if (!!filelocation) reqObj.fl = filelocation
