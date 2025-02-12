@@ -5,7 +5,7 @@ async function createThread(req, res) {
     var threads = {}
 
     Object.keys(models).forEach(async model => {
-        threads[model] = (await models[model].func).thread.create(req, res)
+        threads[model] = (await models[model].actions).thread.create(req, res)
     })
 
     res.json(threads)

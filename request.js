@@ -55,13 +55,13 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
 
   var output
   if (startingMessage) {
-    output = await (await modelObj.func).completion(threadId, prompt, model, type, true, startingMessage)
+    output = await (await modelObj.actions).completion(threadId, prompt, model, type, true, startingMessage)
     output = marked.parse(output)
     res.send({status: 'OK', content: output})
     return
   }
   
-  output = await (await modelObj.func).message(threadId, prompt, model, type, true, startingMessage)
+  output = await (await modelObj.actions).message(threadId, prompt, model, type, true, startingMessage)
 
   if (checkPrompt.includes('{userPrompt}')) {
     if (prompt.includes(systemId)) {
@@ -101,7 +101,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
     res.send({status: 'appOK', content: currentApp})
   }
   else {
-    var cOutput = await (await modelObj.func).message(threadId, checkPrompt, model, type, false, startingMessage)
+    var cOutput = await (await modelObj.actions).message(threadId, checkPrompt, model, type, false, startingMessage)
     if (cOutput === 'good') {
       output = marked.parse(output)
       res.send({status: 'OK', content: output})
@@ -110,7 +110,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
       if (errorCheck.includes('{errorMessage}')) {
         errorCheck = errorCheck.replace('{errorMessage}', output)
       }
-      output = await (await modelObj.func).completion(threadId, errorCheck, model, type, false, startingMessage)
+      output = await (await modelObj.actions).completion(threadId, errorCheck, model, type, false, startingMessage)
       res.send({status: 'Error', content: output})
     }
     else {
@@ -134,7 +134,7 @@ function imageRequest(headers, res, threadId, prompt, model, startingMessage) {
       url: "https://api.openai.com/v1/images/generations",
       body: JSON.stringify(payload),
     },
-    function (error, result, body) {
+    (error, result, body) => {
       body = JSON.parse(body);
       if (body.error) {
         var err = body.error.message
@@ -142,7 +142,7 @@ function imageRequest(headers, res, threadId, prompt, model, startingMessage) {
       }
       else {
         data = body["data"];
-        data.forEach(function (d) {
+        data.forEach(d => {
           url = d["url"];
           var status = url.includes('://') ? 'Success' : 'Error'
           res.send({status: status, content: url});

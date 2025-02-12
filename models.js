@@ -1,6 +1,6 @@
 const FileObj = (...types) => ({ type: 'file', types });
 
-const importFunction = async (model) => {
+const importFile = async (model) => {
     const a = await import(`./models/${model}.js`);
     return a.default;
 }
@@ -13,11 +13,11 @@ const models = {
 }
 
 Object.keys(models).forEach(key => {
-    var func = importFunction(key);
-    if (func.default) func = func.default
+    var actions = importFile(key);
+    if (actions.default) actions = actions.default
     models[key].model = key
     models[key].provider = { id: models[key].provider.toLowerCase, name: models[key].provider }
-    models[key].func = func
+    models[key].actions = actions
 })
 
 function hostModels(app) {
