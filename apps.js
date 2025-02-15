@@ -101,7 +101,7 @@ var appsData = {
     var dialog = document.querySelector('.live-photo')
 
     var iframe = dialog.querySelector('iframe')
-    iframe.src = iframe.getAnimations('data-src')
+    iframe.src = iframe.getAttribute('data-src')
     iframe.removeAttribute('data-src')
 
     dialog.showModal()
