@@ -2863,6 +2863,7 @@
     }
   
     const _country = timezones[timezone].c[0];
+    if (!_country) return null
     const country = countries[_country];
     return country;
   }
