@@ -96,5 +96,29 @@ var appsData = {
     fnames.forEach(function(n, i) {
       newRequest('transcribe-audio', n)
     })
+  },
+  takeLiveImage: function(params) {
+    var dialog = document.querySelector('.live-photo')
+
+    var iframe = dialog.querySelector('iframe')
+    iframe.src = iframe.getAnimations('data-src')
+    iframe.removeAttribute('data-src')
+
+    dialog.showModal()
+  },
+  sendLiveImage: function(params) {
+    var json = params[0]
+    var lastMessage = document.querySelectorAll('.messages > .message.user')
+    lastMessage = lastMessage[lastMessage.length-1]
+    var lastTextSpan = lastMessage.querySelector('.text__span')
+    var lastMessageContent = lastTextSpan.innerHTML
+
+    json.names.forEach(function(n, i) {
+      urls.push(`https://${location.hostname}/temp?name=${n}`)
+    })
+
+    newRequest('live-image-send', lastMessageContent, urls, json.filelocation)
   }
 }
+
+// appsData.takeLiveImage()
