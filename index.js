@@ -93,13 +93,13 @@ app.post("/uploadFile",function (req, res) {
     }
     else {
       // SUCCESS, image successfully uploaded
-      // res.send(fName)
       var url = `/chat?`
       
       var hasParent = req.query.hasParent
       if (!!hasParent) url = `/upload?sucess=true&`
       
       url += `filelocation=temp-storage&name=${fName}`
+      var oUrl = url
       
       var p = req.query.p
       if (!!p) url += `&prompt=${p}`
@@ -109,6 +109,11 @@ app.post("/uploadFile",function (req, res) {
 
       var isBulk = req.query.isBulk
       if (!!isBulk) url += `&isBulk=${isBulk}`
+
+      if (url === oUrl) {
+        res.json({status: 'uploaded', name: fName, filelocation: 'temp-storage'})
+        return 
+      }
       
       res.redirect(url)
     }
@@ -193,6 +198,7 @@ app.get('*', function(req, res) {
   res.sendFile(path, {root: '.'})
 })
 
-app.listen(8080, function() {
-  console.log('Server started on port 8080')
+var port = 3000
+app.listen(port, function() {
+  console.log(`Server started at http://localhost:${port}`)
 })

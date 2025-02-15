@@ -1,5 +1,5 @@
 import fs from 'fs';
-import request from 'request' ;
+import fetch from 'node-fetch' ;
 import path from 'path';
 
 import { marked } from 'marked'
@@ -10,7 +10,6 @@ import OpenAI from 'openai';
 const openai = new OpenAI();
 
 import config from './config.js'
-import { start } from 'repl';
 
 var models = config.models
 
@@ -120,7 +119,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
   }
 }
 
-function imageRequest(headers, res, threadId, prompt, model, startingMessage) {
+async function imageRequest(headers, res, threadId, prompt, model, startingMessage) {
   const payload = {
     model: model,
     prompt: prompt,
@@ -128,28 +127,25 @@ function imageRequest(headers, res, threadId, prompt, model, startingMessage) {
     size: "1024x1024", 
   };
 
-  request.post(
-    {
-      headers: headers,
-      url: "https://api.openai.com/v1/images/generations",
-      body: JSON.stringify(payload),
-    },
-    (error, result, body) => {
-      body = JSON.parse(body);
-      if (body.error) {
-        var err = body.error.message
-        res.send({content: err, status: 'Error'})
-      }
-      else {
-        data = body["data"];
-        data.forEach(d => {
-          url = d["url"];
-          var status = url.includes('://') ? 'Success' : 'Error'
-          res.send({status: status, content: url});
-        });
-      }
-    },
-  );
+  const response = await fetch("https://api.openai.com/v1/images/generations", {
+    method: 'post',
+    body: JSON.stringify(payload),
+    headers: headers
+  });
+
+  const body = await response.json();
+  if (body.error) {
+    var err = body.error.message
+    res.send({content: err, status: 'Error'})
+  }
+  else {
+    data = body["data"];
+    data.forEach(d => {
+      url = d["url"];
+      var status = url.includes('://') ? 'Success' : 'Error'
+      res.send({status: status, content: url});
+    });
+  }
 }
 
 async function audioRequest(res, threadId, prompt, voice, model, startingMessage) {

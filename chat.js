@@ -248,7 +248,7 @@ async function newRequest(type, prompt, urls, voice, filelocation, messageType, 
     }
   }
 
-  var reqObj = {thread: thread || null, type: type, model: model}
+  var reqObj = {thread: (threads || {})[model] || null, type: type, model: model}
 
   if (type == 'image' && !!urls) reqObj.urls = urls
   if (!!filelocation) reqObj.fl = filelocation

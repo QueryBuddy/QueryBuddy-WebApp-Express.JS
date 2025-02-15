@@ -1,4 +1,4 @@
-var thread = null
+var threads = null
 
 createThread()
 
@@ -13,18 +13,17 @@ async function createThread() {
       body: JSON.stringify({}),
     });
 
-    var json = await response.json()
-    thread = json.thread
+    threads = await response.json()
 }
 
 async function deleteThread() {
-    if (!thread) return
-    alert(thread)
+    if (!threads) return
+    alert(threads)
     await fetch('/deleteThread', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({thread: thread}),
+      body: JSON.stringify({threads: threads}),
     });
 }
