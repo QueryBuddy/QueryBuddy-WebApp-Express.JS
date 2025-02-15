@@ -1,10 +1,12 @@
-<html>
+<html lang="en">
   <head>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QueryBuddy</title>
-    <link rel="stylesheet" href="/style.css" />
-    <link rel="stylesheet" href="/chat.css" />
-    <link rel="icon" href="/assets/QueryBuddy.png" />
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/chat.css">
+    <link rel="stylesheet" href="/dialog.css">
+    <link rel="icon" href="/assets/QueryBuddy.png">
     <script src="/threads.js"></script>
   </head>
   <body>
@@ -39,6 +41,9 @@
         <button title="Send Message" class="send-btn"></button>
       </div>
     </section>
+    <dialog class="dialog live-photo upload-button">
+      <iframe title="Upload File Here" frameborder="0" data-src="/photo/take.html?mode=live-image"></iframe>
+    </dialog>
     <script src="/apps.js"></script>
     <script src="/chat2.js"></script>
     <script src="/chat.js"></script>
