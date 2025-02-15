@@ -87,7 +87,7 @@ function download() {
   var a = document.createElement('a')
   a.style = 'width: 0; height: 0; display: none;'
   a.href = src;
-  a.download = `Photo ${new Date()}.png`
+  a.download = `Photo ${new Date().toISOString().replace(/:/g, '-')}.png`
   document.body.appendChild(a)
   a.click()
   window.parent.removeActive()
@@ -98,23 +98,19 @@ function uploadForLiveChat() {
   var canvas = captureVideo(vdo).canvas
 
   canvas.toBlob(async blob => {
-    const fBlob = new File( [ blob ], `Photo ${new Date()}.png` );
+    const file = new File( [ blob ], `Photo ${new Date().toISOString().replace(/:/g, '-')}.png`, { type: 'image/png' } );
   
-    const dT = new DataTransfer();
-    dT.items.add( fBlob );
-    
-    const file = dT.files[0];
-
     const formData = new FormData();
-    formData.append('file', file);
-    console.log(formData)
+    formData.append('image', file);
 
-    var response = await fetch('/uploadFile', {
+    var response = await fetch('/uploadFile?redirect=false', {
       method: 'POST',
       body: formData
     })
+
     if (response.ok) {
       var json = await response.json()
+      console.log(json)
       if (parent !== window && parent.appsData) {
         if (parent.appsData.sendLiveImage) {
           parent.appsData.sendLiveImage([json])

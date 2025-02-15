@@ -5,12 +5,49 @@ import config from '../config.js'
 
 var systemPrompt = config.systemPrompt
 
-async function newMessage(threadId, prompt, model, type, useSystem=true, startingMessage) {
+async function completedActions(run) {
+    const messages = await openai.beta.threads.messages.list(
+        run.thread_id
+    );
+
+    var output = messages.data.reverse()
+
+    output = output.pop().content
+
+    var text = []
+    
+    output.forEach(o => {
+        if (o.type === 'text') text.push(o.text.value)
+    })
+
+    text = text.join('\n\n---------------------------------------------------------------\n\n')
+
+    return text
+}
+
+async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
+    var cArr = [
+        {
+            "type": "text",
+            "text": prompt,
+        },
+    ]
+
+    urls.forEach(u => {
+        cArr.push({
+            "type": "image_url",
+            "image_url": {
+                "url": u,
+                "detail": "high"
+            },
+        })
+    })
+
     const message = await openai.beta.threads.messages.create(
         threadId,
         {
             role: "user",
-            content: prompt,
+            content: cArr,
         }
     );
 
@@ -39,36 +76,58 @@ async function newMessage(threadId, prompt, model, type, useSystem=true, startin
     }
     
     if (run.status === 'completed') {
-        const messages = await openai.beta.threads.messages.list(
-            run.thread_id
-        );
+        return completedActions(run)
+    }
+    else if (run.status === 'queued') {
+        var i = 0
+        var max = 5
 
-        var output = messages.data.reverse()
+        while (run.status === 'queued' && i < max) {
+            run = await openai.beta.threads.runs.retrieve(
+                threadId,
+                run.id
+            );
+            i++
+        }
 
-        output = output.pop().content
-
-        var text = []
-        
-        output.forEach(o => {
-            if (o.type === 'text') text.push(o.text.value)
-        })
-
-        text = text.join('\n\n---------------------------------------------------------------\n\n')
-
-        return text
+        if (run.status === 'completed') {
+            return completedActions(run)
+        }
+        else {
+            return `Error: Unable to create a new message or retrieve the last one with run status of ${run.status}.`
+        }
+    }
+    else if (run.status === 'failed') {
+        return `Error ${run.last_error.code}: ${run.last_error.message}`
     }
     else {
-        return {status: 'waiting', message: run.status}
+        return `Error: Unable to create a new message or retrieve the last one.`
     }
 }
 
-async function newCompletion(threadId, prompt, model, type, useSystem=true, startingMessage) {
+async function newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
     var messages = []
     if (systemPrompt && useSystem) {
         messages.push({"role": "system", "content": systemPrompt})
     }
 
-    messages.push({"role": "user", "content": prompt})
+    var cArr = [
+        {
+            "type": "text",
+            "text": prompt,
+        },
+    ]
+
+    urls.forEach(u => {
+        cArr.push({
+            "type": "image_url",
+            "image_url": {
+                "url": u,
+            },
+        })
+    })
+
+    messages.push({"role": "user", "content": cArr})
 
     const completion = await openai.chat.completions.create({
         messages: messages,

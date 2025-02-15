@@ -21,6 +21,8 @@ var defaultId = config.defaultSystemId;
 var appsList = config.appsList;
 
 function newRequest(res, threadId, prompt, type, urls, voice, systemId, startingMessage) {
+  if (!urls) urls = []
+
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${api_key}`,
@@ -50,17 +52,19 @@ function newRequest(res, threadId, prompt, type, urls, voice, systemId, starting
 async function textRequest(res, threadId, prompt, model, type, urls, systemId, startingMessage) {
   var modelObj = models[model]
 
+  if (type === 'live-image-send') type = 'image'
+
   if (!!systemId === false) systemId = defaultId
 
   var output
   if (startingMessage) {
-    output = await (await modelObj.actions).completion(threadId, prompt, model, type, true, startingMessage)
+    output = await (await modelObj.actions).completion(threadId, prompt, model, type, urls, true, startingMessage)
     output = marked.parse(output)
     res.send({status: 'OK', content: output})
     return
   }
   
-  output = await (await modelObj.actions).message(threadId, prompt, model, type, true, startingMessage)
+  output = await (await modelObj.actions).message(threadId, prompt, model, type, urls, true, startingMessage)
 
   if (checkPrompt.includes('{userPrompt}')) {
     if (prompt.includes(systemId)) {
@@ -73,6 +77,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
   if (checkPrompt.includes('{aiResponse}')) {
     checkPrompt = checkPrompt.replace('{aiResponse}', output)
   }
+
   var currentApp
   if (!!appsList) {
     for (let i = 0; i < output.split('').length; i++) {
@@ -100,7 +105,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
     res.send({status: 'appOK', content: currentApp})
   }
   else {
-    var cOutput = await (await modelObj.actions).message(threadId, checkPrompt, model, type, false, startingMessage)
+    var cOutput = await (await modelObj.actions).message(threadId, checkPrompt, model, type, urls, false, startingMessage)
     if (cOutput === 'good') {
       output = marked.parse(output)
       res.send({status: 'OK', content: output})
@@ -109,7 +114,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
       if (errorCheck.includes('{errorMessage}')) {
         errorCheck = errorCheck.replace('{errorMessage}', output)
       }
-      output = await (await modelObj.actions).completion(threadId, errorCheck, model, type, false, startingMessage)
+      output = await (await modelObj.actions).completion(threadId, errorCheck, model, type, urls, false, startingMessage)
       res.send({status: 'Error', content: output})
     }
     else {

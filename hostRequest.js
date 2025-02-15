@@ -10,10 +10,6 @@ function host(app) {
     var systemId = req.body.systemid
     var startingMessage = req.body.startingmessage
     prompt = decodeURIComponent(prompt)
-    if (!!urls) {
-      if (urls.includes(',')) urls = urls.split(',')
-      else urls = [urls]
-    }
     newRequest(
       res, thread, prompt, type, urls=urls, voice=voice,
       systemId=systemId, startingMessage=startingMessage

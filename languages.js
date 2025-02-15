@@ -133,7 +133,7 @@ var languages = [
 
 var langElement = !!langElement ? langElement : document.getElementById('selLang')
 
-langElement.querySelector('option').forEach(o => o.remove())
+langElement.querySelectorAll('option').forEach(o => o.remove())
 
 languages.forEach(l => {
     var o = document.createElement('option')

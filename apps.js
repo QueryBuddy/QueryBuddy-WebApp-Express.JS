@@ -97,6 +97,9 @@ var appsData = {
       newRequest('transcribe-audio', n)
     })
   },
+  liveImage: function(params) {
+    this.takeLiveImage()
+  },
   takeLiveImage: function(params) {
     var dialog = document.querySelector('.live-photo')
 
@@ -107,17 +110,27 @@ var appsData = {
     dialog.showModal()
   },
   sendLiveImage: function(params) {
+    var dialog = document.querySelector('.live-photo')
+    dialog.close()
+
+    var iframe = dialog.querySelector('iframe')
+    iframe.setAttribute('data-src', iframe.src)
+    iframe.src = ''
+
+
     var json = params[0]
     var lastMessage = document.querySelectorAll('.messages > .message.user')
     lastMessage = lastMessage[lastMessage.length-1]
     var lastTextSpan = lastMessage.querySelector('.text__span')
     var lastMessageContent = lastTextSpan.innerHTML
 
-    json.names.forEach(function(n, i) {
-      urls.push(`https://${location.hostname}/temp?name=${n}`)
-    })
+    fnames = json.name
+    filelocation = json.filelocation
 
-    newRequest('live-image-send', lastMessageContent, urls, json.filelocation)
+    handleFiles()
+
+    type = 'live-image-send'
+    sendMessage(lastMessageContent)
   }
 }
 

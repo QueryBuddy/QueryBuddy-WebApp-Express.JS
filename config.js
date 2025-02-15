@@ -15,7 +15,7 @@ var config = {
 Users request: \`\`\`{userPrompt}\`\`\`
 
 AI Response: \`\`\`{aiResponse}\`\`\``, 
-  errorCheck: `Reword this error message to plain terms without any technical details. MAKE SURE TO EXPLAIN WHY THE AI IS NOT ABLE TO FULFILL THE USERS REQUEST. DO NOT USE ANY QUOTES IN YOUR RESPONSE.
+  errorCheck: `Reword this error message to plain terms without any technical details. MAKE SURE TO EXPLAIN WHY YOU ARE NOT ABLE TO FULFILL THE USERS REQUEST. DO NOT USE ANY QUOTES IN YOUR RESPONSE.
 
 Error message: \`\`\`{errorMessage}\`\`\``, 
   systemPrompt: `THIS IS THE SYSTEM PROMPT.

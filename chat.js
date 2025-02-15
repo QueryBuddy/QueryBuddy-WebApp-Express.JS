@@ -14,10 +14,10 @@ var checkForSend = function() {}
 
 var queryString
 var urlParams
-var filelocation
+var filelocation = ''
 
-var urls
-var fnames
+var urls = []
+var fnames = ''
 var nameStr = ''
 
 var interval
@@ -77,7 +77,7 @@ function addToPrompt(prompt) {
   return prompt
 }
 
-function sendMessage(prompt, type, showUserMessage=true) {
+function sendMessage(prompt, showUserMessage=true) {
   sendBtn.onclick = function() {}
   if (!!prompt === false) prompt = chatElement.value
 
@@ -122,7 +122,7 @@ function sendMessage(prompt, type, showUserMessage=true) {
         newPrompt = newPrompt.split('  ').join(' ')
       }
     }
-    if (!!urls && !!type === false) type = 'image'
+
     if (!!urls) {
       newPrompt += '<div class="chat-imgs">'
       urls.forEach(function(u, i) {
@@ -131,8 +131,8 @@ function sendMessage(prompt, type, showUserMessage=true) {
       newPrompt += '</div>'
     }
     if (showUserMessage) newMessage('user', newPrompt)
-    type = !!type ? type : 'text'
-    newRequest(type, prompt, urls=urls, filelocation=filelocation)
+    type = !!type ? type : !!urls ? 'image' : 'text'
+    newRequest(type, prompt, filelocation=filelocation)
   }
   if (!keepValue) chatElement.value = ''
 }
@@ -146,14 +146,16 @@ function ChangeLang(e) {
 
 function handleFiles() {
   if (!!fnames) {
-    type = 'image'
+    if (!type) type = 'image'
     if (fnames.includes(',')) fnames = fnames.split(',')
     else fnames = [fnames]
   }
   if (!!urls) {
     type = 'image'
-    if (urls.includes(',')) urls = urls.split(',')
-    else urls = [urls]
+    if (typeof urls === 'string') {
+      if (urls.includes(',')) urls = urls.split(',')
+      else urls = [urls]
+    }
     urls.forEach(function(u, i) {
       urls[i] = urls = decodeURIComponent(u)
     })
@@ -162,11 +164,11 @@ function handleFiles() {
   if (filelocation == 'temp-storage') {
     nameStr += ` The names of the files are [`
     fnames.forEach(function(n, i) {
-      urls.push(`https://${location.hostname}/temp?name=${n}`)
+      urls.push(`${location.protocol}//${location.hostname}${location.port ? `:${location.port}` : ''}/temp/${n}`)
       if (i !== 0) nameStr += `, `
       nameStr += `"${n}"`
     })
-    nameStr = String(`${nameStr}].`)
+    nameStr = `${nameStr}].`.toString()
     if (nameStr.includes('  ')) nameStr = nameStr.split('  ').join(' ')
   }
 }
@@ -223,12 +225,13 @@ window.addEventListener('DOMContentLoaded', function (e) {
   sendBtn.addEventListener('click', checkForSend)
 
   newRequest(
-    'text', startingPrompt, null, null, null, 
+    'text', startingPrompt, null, null, 
     'box', {variation: 'info', name: 'welcome'}
   )
 });
 
-async function newRequest(type, prompt, urls, voice, filelocation, messageType, moreParams) {
+async function newRequest(type, prompt, voice, filelocation, messageType, moreParams) {
+  console.log(urls)
   var model = document.getElementById('model').value
 
   chatElement.disabled = true
@@ -248,9 +251,8 @@ async function newRequest(type, prompt, urls, voice, filelocation, messageType, 
     }
   }
 
-  var reqObj = {thread: (threads || {})[model] || null, type: type, model: model}
+  var reqObj = {thread: (threads || {})[model] || null, type: type, model: model, urls: urls || []}
 
-  if (type == 'image' && !!urls) reqObj.urls = urls
   if (!!filelocation) reqObj.fl = filelocation
   if (!!systemId) reqObj.systemid = systemId
   if (!!voice) reqObj.systemid = voice
