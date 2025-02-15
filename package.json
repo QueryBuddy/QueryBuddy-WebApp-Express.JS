@@ -23,7 +23,6 @@
     "node-fetch": "^3.2.6",
     "openai": "^4.83.0",
     "prompt-sync": "^4.2.0",
-    "request": "^2.88.2",
     "tough-cookie": "^4.1.3"
   }
 }
