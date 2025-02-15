@@ -1,6 +1,49 @@
-var btn = document.querySelector('button')
-btn.onclick = download//showImg
+var btn = document.querySelector('.take')
+var blocker = document.querySelector('.blocker')
 
+var searchParams = window.location.search
+var queryParams = new URLSearchParams(searchParams)
+var mode = queryParams.get('mode')
+
+function secondTimer(ele, num, callback) {
+  setTimeout(() => {
+    ele.setAttribute('open', true)
+    ele.textContent = num
+    
+    var i = 1
+    var int = setInterval(() => {
+      ele.textContent = num-i
+  
+      i++
+      if (i >= num) {
+        clearInterval(int)
+        setTimeout(() => {
+          ele.textContent = 'Taking Photo'
+          setTimeout(() => {
+            ele.textContent = ''
+            ele.removeAttribute('open')
+  
+            callback()
+          }, 2000)
+        }, 1000)
+      }
+    }, 1000)
+  }, 1000)
+}
+
+switch (mode) {
+  case 'live-image':
+    btn.onclick = uploadForLiveChat
+    btn.style.display = 'none'
+
+    window.addEventListener('DOMContentLoaded', () => secondTimer(blocker, 3, uploadForLiveChat))
+
+    break
+  default:
+    btn.onclick = download
+    break
+}
+        
 var vdo = document.querySelector('video');
 var img
 
@@ -20,11 +63,11 @@ function captureVideo(video) {
   canvas.height = video.videoHeight;
   var canvasContext = canvas.getContext('2d');
   canvasContext.drawImage(video, 0, 0);
-  return canvas.toDataURL('image/png');
+  return {canvas: canvas, url: canvas.toDataURL('image/png')}
 }
 
 function showImg() {
-  var src = captureVideo(vdo)
+  var src = captureVideo(vdo).url
   vdo.setAttribute('hidden', '')
   if (!!img === false) {
     img = document.createElement('img')
@@ -39,8 +82,8 @@ function showImg() {
   btn.onclick = download
 }
 
-async function download() {
-  var src = captureVideo(vdo)
+function download() {
+  var src = captureVideo(vdo).url
   var a = document.createElement('a')
   a.style = 'width: 0; height: 0; display: none;'
   a.href = src;
@@ -49,4 +92,37 @@ async function download() {
   a.click()
   window.parent.removeActive()
   location.href = '/upload'
+}
+
+function uploadForLiveChat() {
+  var canvas = captureVideo(vdo).canvas
+
+  canvas.toBlob(async blob => {
+    const fBlob = new File( [ blob ], `Photo ${new Date()}.png` );
+  
+    const dT = new DataTransfer();
+    dT.items.add( fBlob );
+    
+    const file = dT.files[0];
+
+    const formData = new FormData();
+    formData.append('file', file);
+    console.log(formData)
+
+    var response = await fetch('/uploadFile', {
+      method: 'POST',
+      body: formData
+    })
+    if (response.ok) {
+      var json = await response.json()
+      if (parent !== window && parent.appsData) {
+        if (parent.appsData.sendLiveImage) {
+          parent.appsData.sendLiveImage([json])
+        }
+        else console.error('File upload failed');
+      }
+      else console.error('File upload failed');
+    }
+    else console.error('File upload failed');
+  });
 }

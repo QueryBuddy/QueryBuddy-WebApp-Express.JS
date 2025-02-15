@@ -1,15 +1,18 @@
-<html>
+<html lang="en">
   <head>
+    <meta charset="utf-8">
     <meta content="Display Webcam Stream" name="title">
-    <title>Take Photo | CamGPT</title>
-    <link rel="stylesheet" href="/photo/style.css" />
-    <link rel="stylesheet" href="/style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take Photo | QueryBuddy</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="/style.css">
   </head>
   <body>
     <div class="video">
       <video autoplay="true" id="videoElement"></video>
     </div>
-    <button>Capture</button>
-    <script src="/photo/script.js"></script>
+    <button class="take">Capture</button>
+    <div class="blocker"></div>
+    <script src="./script.js"></script>
   </body>
 </html>

@@ -18,6 +18,7 @@ body {
   & > * {
     max-width: 100%;
     flex: 1;
+    border-radius: 1rem;
   }
 }
 
@@ -28,4 +29,28 @@ button {
   font-size: 1lh;
   border-radius: 0.25lh;
   border-width: 1px;
+}
+
+.blocker {
+  display: none;
+  
+  position: fixed;
+  inset: 0;
+  margin: auto;
+
+  width: fit-content;
+  height: fit-content;
+
+  font-size: 10rem;
+
+  &[open] {
+    display: block;
+    
+    padding: 2rem;
+
+    background-color: #fff5;
+    line-height: 1;
+
+    border-radius: 2rem;
+  }
 }
