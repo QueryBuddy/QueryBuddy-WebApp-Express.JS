@@ -1,23 +1,26 @@
-const FileObj = (...types) => ({ type: 'file', types });
+import fs from 'fs'
 
 const importFile = async (model) => {
     const a = await import(`./models/${model}.js`);
     return a.default;
 }
 
-const models = {
-    'gpt-4o': {
-        provider: 'OpenAI',
-        types: ['text', FileObj('image', 'audio')],
-    }
-}
+var modelFiles = fs.readdirSync('./models')
 
-Object.keys(models).forEach(key => {
-    var actions = importFile(key);
-    if (actions.default) actions = actions.default
-    models[key].model = key
-    models[key].provider = { id: models[key].provider.toLowerCase, name: models[key].provider }
-    models[key].actions = actions
+const models = {}
+
+modelFiles.forEach(async model => {
+    if (model.endsWith('.js')) model = model.slice(0, -1*'.js'.length)
+
+    var actions = await importFile(model);
+    var config = actions.config
+    actions.config = 'SeeParent'
+
+    models[model] = config
+
+    models[model].model = model
+    models[model].provider = { id: config.provider.toLowerCase(), name: config.provider }
+    models[model].actions = actions
 })
 
 function hostModels(app) {
