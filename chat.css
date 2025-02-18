@@ -5,210 +5,224 @@ html, body {
 }
 
 body {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .messages {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .message {
-  display: flex;
-  padding: 12.5px;
-  gap: 25px;
-
-  :first-child {
-    margin-top: 0;
-  }
-  :last-child {
-    margin-bottom: 0;
-  }
-
-  &.ai {
-    background-color: #10a37f;
-  }
-  &.error {
-    background-color: #D00;
-    color: #FFF;
-  }
-  &.warning {
-    background-color: #FFBB00;
-  }
-  &.box {
-    &.appInfo {
-      background-color: green;
-    }
-    &.info {
-      background-color: skyblue;
-    }
-    &.alert {
-      background-color: #FFEE00;
-    }
-  }
-  &.app {
-    background: var(--app-color, lightgreen)
-  }
-  
-  .image {
-    height: 37.5px;
-    aspect-ratio: 1;
-    clip-path: circle();
-    background-position: center;
-    background-size: contain;
-    background-repeat: no-repeat;
-  }
-  &.ai > .image {
-    background-image: url('/assets/QueryBuddy.svg');
-  }
-  &.app > .image {
-    background-image: var(--app-logo, url('/assets/app.svg'))
-  }
-  &.user > .image {
-    background-image: url('/icons/user.svg');
-  }
-  .text {
-    flex: 1;
-  }
-  .chat-imgs {
-    margin-top: 12.5px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
+    padding: 12.5px;
+    gap: 25px;
+
+    :first-child {
+        margin-top: 0;
+    }
+    :last-child {
+        margin-bottom: 0;
+    }
+
+    &.ai {
+        background-color: #10a37f;
+    }
+    &.error {
+        background-color: #D00;
+        color: #FFF;
+    }
+    &.warning {
+        background-color: #FFBB00;
+    }
+    &.box {
+        &.appInfo {
+            background-color: green;
+        }
+        &.info {
+            background-color: skyblue;
+        }
+        &.alert {
+            background-color: #FFEE00;
+        }
+    }
+    &.app {
+        background: var(--app-color, lightgreen)
+    }
+    
+    .image {
+        height: 37.5px;
+        aspect-ratio: 1;
+        clip-path: circle();
+        background-position: center;
+        background-size: contain;
+        background-repeat: no-repeat;
+    }
+    &.ai > .image {
+        background-image: url('/assets/QueryBuddy.svg');
+    }
+    &.app > .image {
+        background-image: var(--app-logo, url('/assets/app.svg'))
+    }
+    &.user > .image {
+        background-image: url('/icons/user.svg');
+    }
+    .text {
+        flex: 1;
+    }
+    .chat-imgs {
+        margin-top: 12.5px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 }
 
 .input-image {
-  max-height: 250px;
-  border-radius: 5px;
+    max-height: 250px;
+    border-radius: 5px;
 }
 
 .toolbar {
-  position: relative;
-  
-  box-sizing: border-box;
-  padding: 12.5px;
+    position: sticky;
+    bottom: 0;
 
-  min-height: 50px;
-}
-
-.input-parent {
-  box-sizing: border-box;
-  padding: 12.5px;
-  
-  min-height: 100%;
-  
-  border-radius: 100vh;
-  border: solid 1px black;
-  
-  display: flex;
-  gap: 10px;
-  /* overflow: hidden; */
-
-  .upload-button {
-    width: fit-content;
-    aspect-ratio: 1;
-    border: inherit;
-    border-width: 0;
-
-    .upload-check {
-      margin: 0;
-      height: 100%;
-      aspect-ratio: 1;
-
-      background-image: url('/icons/plus.svg');
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
-  }
-  
+    box-sizing: border-box;
+    margin: 1rem;
+    padding: 0.5rem;
     
-    .upload-check:not(:checked) + .upload-iframe {
-      opacity: 0;
-      pointer-events: none;
-    }
+    min-height: 50px;
     
-    .upload-iframe {
-      position: absolute;
-      left: 25px;
-      bottom: 100%;
+    background-color: white;
 
-      background: white;
+    border-radius: 100vh;
+    border: solid 1px black;
+    
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 0.25rem;
+    /* overflow: hidden; */
 
-      border-radius: 10px;
-      border: inherit;
-      border-width: 1px;
-
-      transition: opacity 0.5s ease-out;
-
-      iframe {
-        width: 100%;
+    > * {
         height: 100%;
-      }
     }
-  }
-  
-  .input {
-    flex: 1;
-    height: 100%;
-    resize: none;
-    border: none;
-    outline: none;
-    background-color: transparent;
-  }
-}
 
-.options {
-  display: flex;
-  gap: 5px;
-  
-  & input.dictate[icon] {
-    display: none;
-    pointer-events: none;
-    & + label.dictate[icon] {
-      background-image: url('/icons/mic-off.svg');
+    .upload-button {
+        --transition: opacity 0.5s ease-out;
+
+        width: fit-content;
+        aspect-ratio: 1;
+        border: inherit;
+        border-width: 0;
+        z-index: 1;
+
+        .upload-check {
+            display: none;
+            &:checked ~ .upload-icon {
+                z-index: 2;
+                &::before {
+                    opacity: 1;
+                }
+            }
+        }
+        .upload-icon {
+            position: relative;
+
+            display: block;
+
+            aspect-ratio: 1;
+
+            border-radius: 0.5rem;
+
+            cursor: pointer;
+
+            overflow: hidden;
+            isolation: isolate;
+
+            &::before, &::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+            }
+            &::before {
+                background-color: white;
+                opacity: 0;
+                transition: var(--transition);
+            }
+            &::after {
+                background-image: url('/icons/upload.svg');
+                background-size: contain;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+        }
+        
+            
+        .upload-check:not(:checked) + .upload-iframe {
+            opacity: 0;
+            pointer-events: none;
+        }
+            
+        .upload-iframe {
+            position: fixed;
+            inset: 0;
+
+            background-color: #8889;
+
+            transition: var(--transition, opacity 0.5s ease-out);
+
+            iframe {
+                position: absolute;
+                left: 1rem;
+                bottom: calc(4rem + 1em);
+
+                width: 25rem;
+    
+                aspect-ratio: 16 / 9;
+    
+                background: white;
+    
+                border-radius: 10px;
+                border: solid 1px black;
+                border-width: 1px;
+    
+                transition: inherit;
+                opacity: inherit;
+    
+                overflow: hidden;
+                overflow: clip;
+            }
+        }
     }
-    &:checked + label.dictate[icon] {
-      background-image: url('/icons/mic.svg');
+    
+    .input {
+        flex: 1;
+        resize: none;
+        border: none;
+        outline: none;
+        background-color: transparent;
+
+        /* display: grid; */
+        align-content: center;
     }
-  }
-  & label.dictate[icon] {
-    scale: 1.25;
-    margin-right: 2.5px;
-    height: 1lh;
-    aspect-ratio: 1;
-    background-size: contain;
-    background-position: center;
-    background-repeat: none;
-    cursor: pointer;
-    &:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 1.25px black;
-      border-radius: 2px;
-    }
-  }
 }
 
 .send-btn {
-  margin-left: 10px;
-  height: 20px;
-  aspect-ratio: 1;
-  border: none;
-  background-color: transparent;
-  scale: 1.5;
-  transform-origin: right center;
-  background-image: url('/icons/send.svg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  cursor: pointer;
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 1px black;
-    border-radius: 2px;
-  }
+    aspect-ratio: 1;
+    border: none;
+    background-color: transparent;
+    transform-origin: right center;
+    background-image: url('/icons/send.svg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 1px black;
+        border-radius: 2px;
+    }
 }
