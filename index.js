@@ -85,6 +85,7 @@ app.get('/viewImage', function(req, res) {
 app = hostThreadEndpoints(app)
 
 app.get('/chat', function(req, res) {
+  var defaultModel = 'gpt-4o'
   var fileContent = fs.readFileSync('chat.html', 'utf8')
 
   var models = config.models
@@ -94,7 +95,8 @@ app.get('/chat', function(req, res) {
   if (Object.keys(models).length > 0) {
     Object.keys(models).forEach(key => {
       var model = models[key]
-      mStr += `<option value="${key}">${key} (${model.provider.name})</option>`
+      if (model === defaultModel) mStr += `<option value="${key}" selected>${key} (${model.provider.name})</option>`
+      else mStr += `<option value="${key}">${key} (${model.provider.name})</option>`
     })
     mStr = `<select title="Select Model" id="model">${mStr}</select>`
     fileContent = fileContent.replaceAll(/<selectModels>.*<\/selectModels>/g, mStr)

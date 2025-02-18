@@ -20,7 +20,7 @@ var errorCheck = config.errorCheck;
 var defaultId = config.defaultSystemId;
 var appsList = config.appsList;
 
-function newRequest(res, threadId, prompt, type, urls, voice, systemId, startingMessage) {
+function newRequest(res, model, threadId, prompt, type, urls, voice, systemId, startingMessage) {
   if (!urls) urls = []
 
   const headers = {
@@ -30,20 +30,20 @@ function newRequest(res, threadId, prompt, type, urls, voice, systemId, starting
 
   switch (type) {
     case 'create-image': 
-      var model = `dall-e-${3}`
+      model = `dall-e-${3}`
       imageRequest(headers, res, threadId, prompt, model, startingMessage)
       break;
     case 'create-audio':
-      var model = `tts-${1}-hd`
+      model = `tts-${1}-hd`
       audioRequest(res, threadId, prompt, voice, model, startingMessage)
       break;
     case 'transcribe-audio': 
       var path = `/temp/${prompt}`
-      var model = `whisper-${1}`
+      model = `whisper-${1}`
       transcriptionRequest(path, threadId, res, model, startingMessage)
       break;
     default:
-      var model = `gpt-${4}o`
+      if (!model) model = `gpt-${4}o`
       textRequest(res, threadId, prompt, model, type, urls, systemId, startingMessage)
       break;
   }
