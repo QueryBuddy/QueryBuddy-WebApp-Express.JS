@@ -138,7 +138,7 @@ langElement.querySelectorAll('option').forEach(o => o.remove())
 languages.forEach(l => {
     var o = document.createElement('option')
 
-    o.textContent = `${l.name} (${l.country})`
+    o.textContent = `${l.language} (${l.country})`
 
     var oValue = `${l.code}-${l.country}`
 
