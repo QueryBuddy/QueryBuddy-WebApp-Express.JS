@@ -212,7 +212,7 @@ window.addEventListener('DOMContentLoaded', function (e) {
     dictChk.addEventListener('change', SpeechToText)
   }
 
-  chatElement = document.querySelector('.input-parent .input')
+  chatElement = document.querySelector('.toolbar .input')
   chatElement.focus()
   chatElement.addEventListener('keyup', function(e) {
     if (e.keyCode === 13 && chatElement.value !== '\n') {
@@ -231,7 +231,6 @@ window.addEventListener('DOMContentLoaded', function (e) {
 });
 
 async function newRequest(type, prompt, voice, filelocation, messageType, moreParams) {
-  console.log(urls)
   var model = document.getElementById('model').value
 
   chatElement.disabled = true
