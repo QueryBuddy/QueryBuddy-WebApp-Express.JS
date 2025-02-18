@@ -3,7 +3,14 @@ const openai = new OpenAI();
 
 import config from '../config.js'
 
+const FileObj = (...types) => ({ type: 'file', types });
+
 var systemPrompt = config.systemPrompt
+
+var modelConfig = {
+    provider: 'OpenAI',
+    types: ['text', FileObj('image', 'audio')],
+}
 
 async function completedActions(run) {
     const messages = await openai.beta.threads.messages.list(
@@ -163,4 +170,4 @@ async function deleteThread(id) {
     }
 }
 
-export default { message: newMessage, completion: newCompletion, thread: { create: createThread, delete: deleteThread } }
+export default { config: modelConfig, message: newMessage, completion: newCompletion, thread: { create: createThread, delete: deleteThread } }
