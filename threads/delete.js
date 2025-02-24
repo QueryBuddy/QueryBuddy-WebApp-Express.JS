@@ -5,6 +5,7 @@ async function deleteThread(req, res) {
     var threads = req.body.threads
 
     Object.keys(threads).forEach(async (model, i) => {
+        if (model.startsWith('_')) return
         var thread = threads[model]
         await (await models[model].actions).thread.delete(thread)
             .then(() => {
