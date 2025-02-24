@@ -95,8 +95,8 @@ app.get('/chat', function(req, res) {
   if (Object.keys(models).length > 0) {
     Object.keys(models).forEach(key => {
       var model = models[key]
-      if (model === defaultModel) mStr += `<option value="${key}" selected>${key} (${model.provider.name})</option>`
-      else mStr += `<option value="${key}">${key} (${model.provider.name})</option>`
+      if (model === defaultModel) mStr += `<option value="${key}" selected="selected">${key} (${model.provider.name})</option>`
+      else if (!model.startsWith('_')) mStr += `<option value="${key}">${key} (${model.provider.name})</option>`
     })
     mStr = `<select title="Select Model" id="model">${mStr}</select>`
     fileContent = fileContent.replaceAll(/<selectModels>.*<\/selectModels>/g, mStr)
