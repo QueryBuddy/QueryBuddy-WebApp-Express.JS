@@ -204,18 +204,36 @@ var langElement = !!langElement ? langElement : document.getElementById('selLang
 
 langElement.querySelectorAll('option').forEach(o => o.remove())
 
+var userLanguage = getLanguage()
+var hasUserLanguage = languages.filter(l => convertLanguage(l) === userLanguage)
+if (hasUserLanguage.length > 0) userLanguage = hasUserLanguage[0]
+else userLanguage = {}
+
+if (userLanguage.map) {
+    userLanguage = userLanguage.map
+    userLanguage = languages.filter(l => l.code === userLanguage)
+    if (userLanguage.length > 0) userLanguage = userLanguage[0]
+    else userLanguage = false
+}
+
+if (userLanguage) addLanguage(userLanguage)
+
 languages.forEach(l => {
+    if (l === userLanguage || l.map) return
+    
     addLanguage(l)
 })
+
+function convertLanguage(l) {
+    return `${l.code ? `${l.code}-` : ''}${l.country}`
+}
 
 function addLanguage(l) {
     var o = document.createElement('option')
 
-    o.textContent = `${l.language} (${l.country})`
+    o.textContent = `${l.language}${l.country ? ` (${l.country})` : ''}`
 
-    var oValue = `${l.code}-${l.country}`
-
-    o.value = oValue
+    o.value = convertLanguage(l)
 
     langElement.appendChild(o)
 }
@@ -245,6 +263,4 @@ function getLanguage() {
     })
 
     return language;
-  };
-
-alert(getLanguage());
+};
