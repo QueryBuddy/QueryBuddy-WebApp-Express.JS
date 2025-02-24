@@ -12,7 +12,7 @@ const models = {}
 modelFiles.forEach(async model => {
     if (model.endsWith('.js')) model = model.slice(0, -1*'.js'.length)
 
-    var actions = await importFile(model);
+    var actions = await importFile(model) || await importFile('_Test-Model') || {};
     var config = actions.config
     actions.config = 'SeeParent'
 
@@ -24,9 +24,9 @@ modelFiles.forEach(async model => {
 })
 
 function hostModels(app) {
-  app.post('/models', (req, res) => res.json(models))
+    app.post('/models', (req, res) => res.json(models))
 
-  return app
+    return app
 }
 
 export { models, hostModels };
