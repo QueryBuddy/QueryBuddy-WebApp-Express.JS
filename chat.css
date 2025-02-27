@@ -86,12 +86,18 @@ body {
     border-radius: 5px;
 }
 
-.toolbar {
+.toolbar-container {
     position: sticky;
-    bottom: 1rem;
+    bottom: 0;
 
     box-sizing: border-box;
-    margin: 1rem;
+    padding: 1rem;
+
+    background-color: white;
+}
+
+.toolbar {
+    box-sizing: border-box;
     padding: 0.5rem;
     
     min-height: 50px;
@@ -105,12 +111,6 @@ body {
     grid-template-columns: auto 1fr auto auto;
     gap: 0.25rem;
     /* overflow: hidden; */
-
-    &::before {
-        position: absolute;
-        inset: -1rem;
-        background-color: inherit;
-    }
 
     > * {
         height: 100%;
