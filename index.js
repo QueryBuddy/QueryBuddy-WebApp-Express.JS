@@ -85,7 +85,7 @@ app.get('/viewImage', function(req, res) {
 app = hostThreadEndpoints(app)
 
 app.get('/chat', function(req, res) {
-  var defaultModel = 'gpt-4o'
+  var defaultModel = 'gemini-2.0-flash-lite'
   var fileContent = fs.readFileSync('chat.html', 'utf8')
 
   var models = config.models
