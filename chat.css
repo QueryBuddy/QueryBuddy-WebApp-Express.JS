@@ -108,7 +108,7 @@ body {
 
     &::before {
         position: absolute;
-        inset: 0;
+        inset: -1rem;
         background-color: inherit;
     }
 
