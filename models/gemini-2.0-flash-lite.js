@@ -26,13 +26,7 @@ const aiModel = genAI.getGenerativeModel({ model: modelConfig.model });
 const conversation = aiModel.startChat();
 const chat = aiModel.startChat();
 
-async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
-    return newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage)
-}
-
-async function newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
-    var messageObj = [prompt]
-
+function handleFiles(messageObj) {
     if (urls) {
         urls.forEach(async url => {
             console.log(url)
@@ -51,6 +45,23 @@ async function newCompletion(threadId, prompt, model, type, urls, useSystem=true
             // )
         })
     }
+    return messageObj
+}
+
+async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
+    var messageObj = [prompt]
+
+    handleFiles(messageObj)
+
+    let result = await conversation.sendMessage(messageObj);
+
+    return result.response.text()
+}
+
+async function newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
+    var messageObj = [prompt]
+
+    handleFiles(messageObj)
 
     let result = await chat.sendMessage(messageObj);
 
