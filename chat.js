@@ -388,6 +388,8 @@ function newMessage(role, content, moreParams) {
         sendBtn.onclick = function() {}
         let currLett = content.split('')[sI];
         textSpan.innerHTML += currLett
+        if (textSpan.includes('&lt;')) textSpan.innerHTML = textSpan.innerHTML.replaceAll('&lt;', '<')
+        if (textSpan.includes('&gt;')) textSpan.innerHTML = textSpan.innerHTML.replaceAll('&gt;', '>')
         sI++;
       }
       else {
