@@ -215,7 +215,7 @@ window.addEventListener('DOMContentLoaded', function (e) {
   chatElement = document.querySelector('.toolbar .input')
   chatElement.focus()
   chatElement.addEventListener('keyup', function(e) {
-    if (e.keyCode === 13 && chatElement.value !== '\n') {
+    if (e.keyCode === 13 && !e.shiftKey && chatElement.value !== '\n') {
       sendMessage()
     }
   })
