@@ -144,7 +144,7 @@ async function newCompletion(threadId, prompt, model, type, urls, useSystem=true
     return completion.choices[0].message.content
 }
 
-async function createThread(req, res) {
+async function createThread() {
     const thread = await openai.beta.threads.create();
 
     const message = await openai.beta.threads.messages.create(
