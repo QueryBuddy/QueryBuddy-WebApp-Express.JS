@@ -4,7 +4,8 @@ import path from 'path';
 
 import { marked } from 'marked'
 
-var api_key = process.env.OPENAI_API_KEY
+var provider = 'OpenAI'
+var api_key = process.env[`${provider.toUpperCase()}_API_KEY`]
 
 import OpenAI from 'openai';
 const openai = new OpenAI();
