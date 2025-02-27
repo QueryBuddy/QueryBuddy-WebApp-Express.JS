@@ -24,7 +24,6 @@ const genAI = new GoogleGenerativeAI(modelConfig.api_key);
 const aiModel = genAI.getGenerativeModel({ model: modelConfig.model });
 
 const conversation = aiModel.startChat();
-const chat = aiModel.startChat();
 
 function handleFiles(messageObj) {
     if (urls) {
@@ -51,7 +50,7 @@ function handleFiles(messageObj) {
 async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
     var messageObj = [prompt]
 
-    handleFiles(messageObj)
+    messageObj = handleFiles(messageObj)
 
     let result = await conversation.sendMessage(messageObj);
 
@@ -59,9 +58,11 @@ async function newMessage(threadId, prompt, model, type, urls, useSystem=true, s
 }
 
 async function newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
+    const chat = aiModel.startChat();
+
     var messageObj = [prompt]
 
-    handleFiles(messageObj)
+    messageObj = handleFiles(messageObj)
 
     let result = await chat.sendMessage(messageObj);
 
