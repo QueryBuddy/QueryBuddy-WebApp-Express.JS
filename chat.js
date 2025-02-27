@@ -1,4 +1,3 @@
-var systemPrompt = !!systemPrompt ? systemPrompt : false
 var appsList = !!appsList ? appsList : false
 var keepValue = !!keepValue ? keepValue : false
 
@@ -25,8 +24,6 @@ var specialActs4Conv = function(x,y,z) {}
 
 var lastAnswer = ''
 var lastQuestion = ''
-
-var systemId = '$[systemPrompt]'
 
 var finaValu = ''
 var prevValu = ''
@@ -58,9 +55,6 @@ function addToPrompt(prompt) {
   prompt += ` ${nameStr}`
   if (prompt.endsWith(' ')) {
     prompt = prompt.slice(0, -1)
-  }
-  if (!!systemPrompt) {
-    prompt += `\n${systemId}\n${systemPrompt}`
   }
   if (prompt.endsWith(' ')) {
     prompt = prompt.slice(0, -1)
@@ -237,16 +231,13 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
 
   if (type == 'create-image') {
     if (prompt.includes(' \n ')) {
-      prompt = prompt.split(' \n ').join(' ')
+      prompt = prompt.split(' \n ').join('\n')
     }
     if (prompt.includes(' \n')) {
-      prompt = prompt.split(' \n').join(' ')
+      prompt = prompt.split(' \n').join('\n')
     }
     if (prompt.includes('\n ')) {
-      prompt = prompt.split('\n ').join(' ')
-    }
-    if (prompt.includes('\n')) {
-      prompt = prompt.split('\n').join(' ')
+      prompt = prompt.split('\n ').join('\n')
     }
   }
 
