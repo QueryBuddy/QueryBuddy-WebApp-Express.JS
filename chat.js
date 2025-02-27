@@ -2,14 +2,18 @@ var appsList = !!appsList ? appsList : false
 var keepValue = !!keepValue ? keepValue : false
 
 var type = 'text'
-var useAmt = 0
+var useAmt = -1
 var maxUses = 10
 var maxMessage = `You will now exceed ${maxUses} continuous messages. Please <a href="javascript:location.reload()">Start a New Conversation</a> to send more messages.`
 
 var chatElement
 var langElement
 var sendBtn
-var checkForSend = function() {}
+var checkForSend = e => {
+  if (e.keyCode === 13 && !e.shiftKey && chatElement.value !== '\n') {
+    sendMessage()
+  }
+}
 
 var queryString
 var urlParams
@@ -30,12 +34,12 @@ var prevValu = ''
 var currValu = ''
 var oSpeechRecognizer = null
 
-function handleUpload(queryString) {
-  var queryString = window.location.search;
-  var urlParams = new URLSearchParams(queryString)
+function handleUpload(query) {
+  query = query ?? queryString ?? window.location.search
+  var params = new URLSearchParams(queryString)
 
-  fnames = urlParams.get('name')
-  filelocation = urlParams.get('filelocation')
+  fnames = params.get('name')
+  filelocation = params.get('filelocation')
 
   handleFiles()
 }
@@ -67,16 +71,17 @@ function addToPrompt(prompt) {
   if (prompt.endsWith(' ')) {
     prompt = prompt.slice(0, -1)
   }
-  if (prompt.includes('  ')) prompt = prompt.split(' ').join(' ')
+  prompt = prompt.replaceAll('  ', ' ')
   return prompt
 }
 
 function sendMessage(prompt, showUserMessage=true) {
   sendBtn.onclick = function() {}
+  chatElement.onkeyup = function() {}
   if (!!prompt === false) prompt = chatElement.value
 
   var lPrompt = prompt.toLowerCase()
-  if (lPrompt.includes(' ')) lPrompt = lPrompt.split(' ').join('')
+  lPrompt = lPrompt.replaceAll(' ', ' ')
 
   if (lPrompt === 'tryagain') {
     if (lastQuestion) prompt = lastQuestion
@@ -100,23 +105,7 @@ function sendMessage(prompt, showUserMessage=true) {
   }
   else {
     var newPrompt = prompt
-    if (prompt.includes(systemId)) {
-      prompt = prompt.split(systemId)
-      var lastItem = prompt.pop()
-      prompt = prompt.join(systemId)
-      prompt += lastItem
-      if (prompt.includes('  ')) {
-        prompt = prompt.split('  ').join(' ')
-      }
-
-      newPrompt = newPrompt.split(systemId)
-      newPrompt.pop()
-      newPrompt.join(systemId)
-      if (newPrompt.includes('  ')) {
-        newPrompt = newPrompt.split('  ').join(' ')
-      }
-    }
-
+    prompt = prompt.replaceAll('  ', ' ')
     if (!!urls) {
       newPrompt += '<div class="chat-imgs">'
       urls.forEach(function(u, i) {
@@ -163,7 +152,7 @@ function handleFiles() {
       nameStr += `"${n}"`
     })
     nameStr = `${nameStr}].`.toString()
-    if (nameStr.includes('  ')) nameStr = nameStr.split('  ').join(' ')
+    nameStr = nameStr.replaceAll('  ', ' ')
   }
 }
 
@@ -207,16 +196,11 @@ window.addEventListener('DOMContentLoaded', function (e) {
   }
 
   chatElement = document.querySelector('.toolbar .input')
-  chatElement.focus()
-  chatElement.addEventListener('keyup', function(e) {
-    if (e.keyCode === 13 && !e.shiftKey && chatElement.value !== '\n') {
-      sendMessage()
-    }
-  })
-
   sendBtn = chatElement.parentNode.querySelector('.send-btn')
-  checkForSend = function(e) { if (chatElement.value !== '') sendMessage() }
-  sendBtn.addEventListener('click', checkForSend)
+
+  chatElement.focus()
+  chatElement.onkeyup = checkForSend
+  sendBtn.onclick = sendMessage
 
   newRequest(
     'text', startingPrompt, null, null, 
@@ -230,21 +214,16 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
   chatElement.disabled = true
 
   if (type == 'create-image') {
-    if (prompt.includes(' \n ')) {
-      prompt = prompt.split(' \n ').join('\n')
-    }
-    if (prompt.includes(' \n')) {
-      prompt = prompt.split(' \n').join('\n')
-    }
-    if (prompt.includes('\n ')) {
-      prompt = prompt.split('\n ').join('\n')
-    }
+    prompt = prompt.replaceAll(' \n ', '\n')
+    prompt = prompt.replaceAll(' \n', '\n')
+    prompt = prompt.replaceAll('\n ', '\n')
   }
 
-  var reqObj = {thread: (threads || {})[model] || null, type: type, model: model, urls: urls || []}
+  var reqObj = {p: prompt, type: type, model: model}
 
+  if (!!threads && !!threads[model]) reqObj.thread = threads[model]
   if (!!filelocation) reqObj.fl = filelocation
-  if (!!systemId) reqObj.systemid = systemId
+  if (!!urls && Array.isArray(urls) && urls.length > 0) reqObj.urls = urls
   if (!!voice) reqObj.systemid = voice
     if (messageType == 'box') {
     if (!!moreParams) {
@@ -255,8 +234,6 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
       }
     }
   }
-  prompt = encodeURIComponent(prompt)
-  reqObj.p = prompt
   
   var response = await fetch('/sendRequest', {
     method: 'POST',
@@ -313,6 +290,8 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
     newMessage(role, output, moreParams)
     lastAnswer = output
   }
+
+  useAmt++
 }
 
 function newMessage(role, content, moreParams) {
@@ -364,32 +343,42 @@ function newMessage(role, content, moreParams) {
   if (isRole) {
     var sI = 0;
     if (!!content) {
+      // content = content.replaceAll('&lt;', '<').replaceAll('&gt;', '>')
       doActs();
       interval = setInterval(doActs, 10);
     }
     else {
       textSpan.innerHTML = 'Unknown Error'
+
       chatElement.disabled = false
-      sendBtn.addEventListener('click', checkForSend)
+      sendBtn.onclick = sendMessage
+      chatElement.onkeyup = checkForSend
+
       setScrollPos()
     }
     function doActs() {
       if (sI < content.length) {
         chatElement.disabled = true
         sendBtn.onclick = function() {}
-        let currLett = content.split('')[sI];
-        textSpan.innerHTML += currLett
-        textSpan.innerHTML = marked.parse(textSpan.innerHTML);
+        chatElement.onkeyup = function() {}
+
+        textSpan.innerHTML = marked.parse(content.slice(0, sI+1))
+        // textSpan.innerHTML = textSpan.innerHTML.replaceAll('&lt;', '<').replaceAll('&gt;', '>')
         sI++;
       }
       else {
         clearInterval(interval);
         specialActs4Conv(role, content, moreParams)
+
         chatElement.disabled = false
-        sendBtn.addEventListener('click', checkForSend)
+        sendBtn.onclick = sendMessage
+        chatElement.onkeyup = checkForSend
+
         if (useAmt > maxUses) {
           chatElement.disabled = true
           sendBtn.onclick = function() {}
+          chatElement.onkeyup = function() {}
+
           newMessage('error', maxMessage)
         }
       }
@@ -398,8 +387,11 @@ function newMessage(role, content, moreParams) {
   } 
   else {
     textSpan.innerHTML = content  
+
     chatElement.disabled = false
-    sendBtn.addEventListener('click', checkForSend)
+    sendBtn.onclick = sendMessage
+    chatElement.onkeyup = checkForSend
+
     setScrollPos()
   }
 }
@@ -419,7 +411,9 @@ function setScrollPos() {
 
 function SpeechToText() {
   chatElement.disabled = false
-  sendBtn.addEventListener('click', checkForSend)
+  sendBtn.onclick = sendMessage
+  chatElement.onkeyup = checkForSend
+
   if (oSpeechRecognizer) {
     if (chkSpeak.checked) {
       oSpeechRecognizer.start();
@@ -439,6 +433,8 @@ function SpeechToText() {
   oSpeechRecognizer.onresult = function (e) {
     chatElement.disabled = true
     sendBtn.onclick = function() {}
+    chatElement.onkeyup = function() {}
+
     var interimTranscripts = '';
     for (var i = e.resultIndex; i < e.results.length; i++) {
       var transcript = e.results[i][0].transcript;
@@ -447,8 +443,10 @@ function SpeechToText() {
         finaValu += currValu
         chatElement.value = finaValu
         currValu = ''
+
         chatElement.disabled = false
-        sendBtn.addEventListener('click', checkForSend)
+        sendBtn.onclick = sendMessage
+        chatElement.onkeyup = checkForSend
       }
       else {
         interimTranscripts += transcript;
@@ -458,7 +456,8 @@ function SpeechToText() {
       }
 
       chatElement.disabled = false
-      sendBtn.addEventListener('click', checkForSend)
+      sendBtn.onclick = sendMessage
+      chatElement.onkeyup = checkForSend
     }
   };
 
