@@ -70,12 +70,12 @@ async function newCompletion(threadId, prompt, model, type, urls, useSystem=true
 }
 
 async function createThread(model) {
-    let sendSPrompt = await chat.sendMessage(systemPrompt);
+    let sendSPrompt = await conversation.sendMessage(systemPrompt);
     return 'n/a'
 }
 
 async function deleteThread(id) {
-    let sendOPrompt = await chat.sendMessage('This chat is over, thanks!');
+    let sendOPrompt = await conversation.sendMessage('This chat is over, thanks!');
     return 'done!'
 }
 
