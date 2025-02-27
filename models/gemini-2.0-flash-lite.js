@@ -15,7 +15,7 @@ var modelConfig = {
     provider: 'Google',
     model: 'gemini-2.0-flash-lite',
     types: ['text'/*, FileObj('image', 'audio')*/],
-    modelPrompt: 'Unfortunately, you are not yet able to keep context.',
+    // modelPrompt: 'Unfortunately, you are not yet able to keep context.',
 }
 modelConfig.api_key = process.env[`${modelConfig.provider.toUpperCase()}_API_KEY`]
 
