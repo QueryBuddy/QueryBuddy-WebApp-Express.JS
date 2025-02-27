@@ -23,6 +23,7 @@ modelConfig.api_key = process.env[`${modelConfig.provider.toUpperCase()}_API_KEY
 const genAI = new GoogleGenerativeAI(modelConfig.api_key);
 const aiModel = genAI.getGenerativeModel({ model: modelConfig.model });
 
+const conversation = aiModel.startChat();
 const chat = aiModel.startChat();
 
 async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
@@ -58,10 +59,11 @@ async function newCompletion(threadId, prompt, model, type, urls, useSystem=true
 
 async function createThread(model) {
     let sendSPrompt = await chat.sendMessage(systemPrompt);
-    return false
+    return 'n/a'
 }
 
 async function deleteThread(id) {
+    let sendOPrompt = await chat.sendMessage('This chat is over, thanks!');
     return 'done!'
 }
 
