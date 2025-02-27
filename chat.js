@@ -372,7 +372,6 @@ function newMessage(role, content, moreParams) {
   var isRole = staggerRoles.filter(r => role === r).length > 0
   if (isRole) {
     var sI = 0;
-    var prevContent = ''
     if (!!content) {
       doActs();
       interval = setInterval(doActs, 10);
@@ -388,8 +387,7 @@ function newMessage(role, content, moreParams) {
         chatElement.disabled = true
         sendBtn.onclick = function() {}
         let currLett = content.split('')[sI];
-        prevContent += currLett;
-        textSpan.innerHTML = prevContent
+        textSpan.innerHTML += currLett
         sI++;
       }
       else {
