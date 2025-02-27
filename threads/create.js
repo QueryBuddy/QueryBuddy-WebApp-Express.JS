@@ -7,6 +7,7 @@ async function createThread(req, res) {
     Object.keys(models).forEach(async (model, i) => {
         if (model.startsWith('_')) return
         await (await models[model].actions).thread.create()
+        await (await models[model].actions).thread.create(model)
             .then(thread => threads[model] = thread)
             .then(() => {
                 if (i === Object.keys(models).length - 1) res.json(threads)
