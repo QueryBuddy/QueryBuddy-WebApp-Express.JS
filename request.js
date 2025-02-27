@@ -2,8 +2,6 @@ import fs from 'fs';
 import fetch from 'node-fetch' ;
 import path from 'path';
 
-import { marked } from 'marked'
-
 var provider = 'OpenAI'
 var api_key = process.env[`${provider.toUpperCase()}_API_KEY`]
 
@@ -14,7 +12,6 @@ import config from './config.js'
 
 var models = config.models
 
-var systemPrompt = config.systemPrompt
 var checkPrompt = config.checkPrompt;
 var errorCheck = config.errorCheck;
 
@@ -60,7 +57,6 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
   var output
   if (startingMessage) {
     output = await (await modelObj.actions).completion(threadId, prompt, model, type, urls, true, startingMessage)
-    output = marked.parse(output)
     res.send({status: 'OK', content: output})
     return
   }
@@ -108,7 +104,6 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
   else {
     var cOutput = await (await modelObj.actions).message(threadId, checkPrompt, model, type, urls, false, startingMessage)
     if (cOutput === 'good') {
-      output = marked.parse(output)
       res.send({status: 'OK', content: output})
     }
     else if (cOutput === 'not good') {
@@ -119,7 +114,6 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
       res.send({status: 'Error', content: output})
     }
     else {
-      output = marked.parse(output)
       res.send({status: 'OK', content: output})
     }
   }
