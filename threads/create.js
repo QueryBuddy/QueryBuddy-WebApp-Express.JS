@@ -15,7 +15,6 @@ async function createThread(req, res) {
         await (await models[model].actions).thread.create(model)
             .then(thread => threads[model] = thread)
             .then(thread => {
-                console.log(i, keys.length)
                 if (i === keys.length) res.json(threads)
                 i++
             })

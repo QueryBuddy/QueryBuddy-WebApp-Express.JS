@@ -211,8 +211,6 @@ window.addEventListener('DOMContentLoaded', function (e) {
 async function newRequest(type, prompt, voice, filelocation, messageType, moreParams) {
   var model = document.getElementById('model').value
 
-  chatElement.disabled = true
-
   if (type == 'create-image') {
     prompt = prompt.replaceAll(' \n ', '\n')
     prompt = prompt.replaceAll(' \n', '\n')
@@ -350,7 +348,6 @@ function newMessage(role, content, moreParams) {
     else {
       textSpan.innerHTML = 'Unknown Error'
 
-      chatElement.disabled = false
       sendBtn.onclick = sendMessage
       chatElement.onkeyup = checkForSend
 
@@ -358,7 +355,6 @@ function newMessage(role, content, moreParams) {
     }
     function doActs() {
       if (sI < content.length) {
-        chatElement.disabled = true
         sendBtn.onclick = function() {}
         chatElement.onkeyup = function() {}
 
@@ -370,16 +366,15 @@ function newMessage(role, content, moreParams) {
         clearInterval(interval);
         specialActs4Conv(role, content, moreParams)
 
-        chatElement.disabled = false
         sendBtn.onclick = sendMessage
         chatElement.onkeyup = checkForSend
 
-        if (useAmt > maxUses) {
+        if (useAmt > maxUses && !moreParams.isApp && !moreParams.isMax) {
           chatElement.disabled = true
           sendBtn.onclick = function() {}
           chatElement.onkeyup = function() {}
 
-          newMessage('error', maxMessage)
+          newMessage('error', maxMessage, {isMax: true})
         }
       }
     }
@@ -388,7 +383,6 @@ function newMessage(role, content, moreParams) {
   else {
     textSpan.innerHTML = content  
 
-    chatElement.disabled = false
     sendBtn.onclick = sendMessage
     chatElement.onkeyup = checkForSend
 

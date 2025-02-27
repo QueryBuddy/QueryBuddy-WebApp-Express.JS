@@ -71,6 +71,7 @@ async function newCompletion(threadId, prompt, model, type, urls, useSystem=true
 
 async function createThread(model) {
     let sendSPrompt = await conversation.sendMessage(systemPrompt);
+    let sendfMessage = await conversation.sendMessage(config.firstMessage);
     return 'n/a'
 }
 

@@ -14,7 +14,6 @@ async function deleteThread(req, res) {
         }
         await (await models[model].actions).thread.delete(threads[model])
             .then(() => {
-                console.log(i, keys.length)
                 if (i === keys.length) res.json(threads)
                 i++
             })
