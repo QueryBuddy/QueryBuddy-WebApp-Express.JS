@@ -3,13 +3,20 @@ const models = config.models
 
 async function createThread(req, res) {
     var threads = {}
+    var keys = Object.keys(models)
 
-    Object.keys(models).forEach(async (model, i) => {
-        if (model.startsWith('_')) return
+    var i = 0
+    Object.keys(models).forEach(async model => {
+        if (model.startsWith('_')) {
+            keys.splice(i, 1)
+            i++
+            return
+        }
         await (await models[model].actions).thread.create(model)
             .then(thread => threads[model] = thread)
-            .then(() => {
-                if (i === Object.keys(models).length - 1) res.json(threads)
+            .then(thread => {
+                if (i === keys.length) res.json(threads)
+                i++
             })
     })
 }

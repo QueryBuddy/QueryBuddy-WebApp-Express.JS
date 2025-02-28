@@ -1,7 +1,6 @@
-var threads = null
+var threads = []
 
 createThread()
-
 window.addEventListener("beforeunload", deleteThread);
 
 async function createThread() {
@@ -14,6 +13,7 @@ async function createThread() {
     });
 
     threads = await response.json()
+    // alert(threads)
 }
 
 async function deleteThread() {

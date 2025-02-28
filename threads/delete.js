@@ -1,15 +1,21 @@
 import config from '../config.js'
 const models = config.models
+var keys = Object.keys(models)
 
 async function deleteThread(req, res) {
     var threads = req.body.threads
 
-    Object.keys(threads).forEach(async (model, i) => {
-        if (model.startsWith('_')) return
-        var thread = threads[model]
-        await (await models[model].actions).thread.delete(thread)
+    var i = 0
+    keys.forEach(async model => {
+        if (model.startsWith('_')) {
+            keys.splice(i, 1)
+            i++
+            return
+        }
+        await (await models[model].actions).thread.delete(threads[model])
             .then(() => {
-                if (i === Object.keys(models).length - 1) res.json(threads)
+                if (i === keys.length) res.json(threads)
+                i++
             })
     })
 }

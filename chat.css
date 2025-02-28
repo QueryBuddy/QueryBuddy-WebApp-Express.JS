@@ -86,12 +86,18 @@ body {
     border-radius: 5px;
 }
 
-.toolbar {
+.toolbar-container {
     position: sticky;
     bottom: 0;
 
     box-sizing: border-box;
-    margin: 1rem;
+    padding: 1rem;
+
+    background-color: white;
+}
+
+.toolbar {
+    box-sizing: border-box;
     padding: 0.5rem;
     
     min-height: 50px;

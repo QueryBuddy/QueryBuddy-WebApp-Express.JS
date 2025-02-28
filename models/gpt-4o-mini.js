@@ -33,6 +33,7 @@ async function completedActions(run) {
 }
 
 async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
+    console.log(threadId)
     var cArr = [
         {
             "type": "text",
@@ -151,7 +152,7 @@ async function createThread() {
       thread.id,
         {
             role: 'assistant',
-            content: 'Please first ask the user for their name, and address them as such.'
+            content: config.firstMessage
         }
     );
 

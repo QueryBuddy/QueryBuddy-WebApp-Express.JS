@@ -10,7 +10,6 @@ function host(app) {
     var voice = req.body.v
     var systemId = req.body.systemid
     var startingMessage = req.body.startingmessage
-    prompt = decodeURIComponent(prompt)
     newRequest(
       res, model || '', thread || '', prompt, type, urls=urls, voice=voice,
       systemId=systemId, startingMessage=startingMessage

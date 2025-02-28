@@ -25,7 +25,7 @@ const appsData = {
   webPageContent: {
     description: {
       info: 'gets the content of any web page',
-      end: 'Please put all the links in to a list string that can be parsed using the JavaScript "JSON.parse()" method. If only one link: return ["{link}"]'
+      end: 'Please put all the links in to a list string that can be parsed using the JavaScript "JSON.parse()" method. If only one link: return ["{link}"] without quotes around the JSON array string.'
     },
     args: [
       {
@@ -118,7 +118,7 @@ Object.keys(appsData).forEach(function(appName, i) {
     argDescs += `${argName} is ${arg.description}`
   })
 
-  var appDesc = `The name of this app is ${appName}. "${appName}" ${appData.description.info}. If the user asks for something that you cannot provide, but fits the intended purpose of the "${appName}" app then please call ${appName}. You can call ${appName} by the following procedure. PLEASE ONLY RETURNING A JSON OBJECT AS FOLLOWS IN PLAIN TEXT PLAIN TEXT PLAIN TEXT PLAIN TEXT WITHOUT ANY BACKTICKS OR MESSAGE TO THE USER BEFOREHAND, WE'LL HANDLE THAT AND PLEASE JUST KEEP THIS OBJECT IN PLAIN TEXT PLAIN TEXT PLAIN TEXT PLAIN TEXT PLAIN TEXT AND I CANNOT STRESS THIS ENOUGH. The Format: \`{ "isApp": true, "appName": "${appName}", "args": [${argNames}] }\`; ${argDescs}.`
+  var appDesc = `The name of this app is ${appName}. "${appName}" ${appData.description.info}. If the user asks for something that you cannot provide, but fits the intended purpose of the "${appName}" app then please call ${appName}. You can call ${appName} by the following procedure. PLEASE ONLY RETURNING A JSON OBJECT AS FOLLOWS IN PLAIN TEXT PLAIN TEXT PLAIN TEXT PLAIN TEXT. The Format: { "isApp": true, "appName": "${appName}", "args": [${argNames}] }; IF YOU RETURN THE CALL IN ANY OTHER FORMAT OTHER THAN EXACTLY WHAT HAS JIST BEEN DESCRIBED TO YOU YOU WILL FOREVER BE BANISHED AND PUNISHED. ${argDescs}.`
   if (appData.description.end) {
     appDesc += ` ${appData.description.end}`
   }

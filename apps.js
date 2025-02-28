@@ -5,85 +5,64 @@ var appsList = [
 ]
 
 var appsData = {
-  weather: function(params) {
+  weather: async function(params) {
     var zip = params[0]
-    var country = ''
 
-    var countryReq = new XMLHttpRequest()
-    countryReq.open('GET', '/getCountry')
-    countryReq.addEventListener('load', function() {
-        country = this.responseText
-    })
-    countryReq.send()
-    
-    var unit = 'C'
-    if (country === 'United States of America') unit = 'F'
-
-    var weatherRequest = new XMLHttpRequest()
-    weatherRequest.open('GET', `/getWeather?zip=${zip}&unit=${unit}`)
-    weatherRequest.addEventListener('load', function() {
-      var weather = this.responseText
-      newMessage('app', weather, {appName: 'weather'})
-    })
-    weatherRequest.send()
+    var cResponse = await fetch('/getCountry')
+    if (cResponse.ok) {
+      var country = await response.text()
+      var unit = 'C'
+      if (country === 'United States of America') unit = 'F'
+  
+      var response = await fetch(`/getWeather?zip=${zip}&unit=${unit}`)
+      if (response.ok) {
+        var weather = await response.text()
+        newMessage('app', weather, {isApp: true, appName: 'weather'})
+      }
+      else {
+        newMessage('app', 'Unable to get weather.', {appName: 'weather'})
+      }
+    }
+    else {
+      newMessage('app', 'Unable to get country.', {appName: 'weather'})
+    }
   },
-  webPageContent: function(params) {
+  webPageContent: async function(params) {
     var links = params[0]
     if (typeof links !== 'object') links = [links]
 
-    links.forEach(function(link, i) {
-      var req = new XMLHttpRequest()
-      req.open('GET', `/getWebpageContent?url=${link}`)
-      req.addEventListener('load', function() {
-        var res = this.responseText
+    links.forEach(async function(link, i) {
+      var response = await fetch(`/getWebpageContent?url=${link}`)
+      if (!response.ok) {
+        newMessage('app', 'Unable to get webpage content.', {appName: 'webPageContent'})
+        return
+      }
+      var html = await response.text()
 
-        if (res.includes('&lt;')) res = res.split('&lt;').join('<')
-        if (res.includes('&gt;')) res = res.split('&gt;').join('>')
+      var turndownService = new TurndownService()
+      var md = turndownService.turndown(html)
 
-        var styles = res.match(/<style>.+<\/style>/)
-        if (styles) {
-          styles.forEach(s => {
-            res = res.replace(s, '')
-          })
-        }
-        var links = res.match(/<link.+>/)
-        if (links) {
-          links.forEach(l => {
-            res = res.replace(l, '')
-          })
-        }
-        var metas = res.match(/<meta.+>/)
-        if (metas) {
-          metas.forEach(m => {
-            res = res.replace(m, '')
-          })
-        }
-        var scripts = res.match(/<script.+>.+<\/script>/)
-        if (scripts) {
-          scripts.forEach(s => {
-            res = res.replace(s, '')
-          })
-        }
+      var res = marked.parse(md)
 
-        newMessage('app', res, {appName: 'webPageContent'})
-      })
-      req.send()
+      res = res.replaceAll('&lt;', '<').replaceAll('&gt;', '>')
+
+      newMessage('app', res, {isApp: true, appName: 'webPageContent'})
     })
   },
-  openLink: function(params) {
+  openLink: async function(params) {
     var links = params[0]
     links = JSON.parse(links)
 
-    links.forEach(function(link, i) {
+    links.forEach(async function(link, i) {
       open(link)
       newMessage('app', `Opened "${link}".`, {appName: 'openLink'})
     })
   },
-  createImage: function(params) {
+  createImage: async function(params) {
     var prompt = params[0]
     newRequest('create-image', prompt)
   }, 
-  transcribeAudio: function(params) {
+  transcribeAudio: async function(params) {
     if (!fnames) {
       var params = new URLSearchParams(window.location.search)
       var names = params.get('name')
@@ -93,14 +72,14 @@ var appsData = {
       }
     }
 
-    fnames.forEach(function(n, i) {
+    fnames.forEach(async function(n, i) {
       newRequest('transcribe-audio', n)
     })
   },
-  liveImage: function(params) {
+  liveImage: async function(params) {
     this.takeLiveImage()
   },
-  takeLiveImage: function(params) {
+  takeLiveImage: async function(params) {
     var dialog = document.querySelector('.live-photo')
 
     var iframe = dialog.querySelector('iframe')
@@ -109,7 +88,7 @@ var appsData = {
 
     dialog.showModal()
   },
-  sendLiveImage: function(params) {
+  sendLiveImage: async function(params) {
     var dialog = document.querySelector('.live-photo')
     dialog.close()
 

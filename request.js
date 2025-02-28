@@ -2,8 +2,6 @@ import fs from 'fs';
 import fetch from 'node-fetch' ;
 import path from 'path';
 
-import { marked } from 'marked'
-
 var provider = 'OpenAI'
 var api_key = process.env[`${provider.toUpperCase()}_API_KEY`]
 
@@ -14,12 +12,27 @@ import config from './config.js'
 
 var models = config.models
 
-var systemPrompt = config.systemPrompt
 var checkPrompt = config.checkPrompt;
 var errorCheck = config.errorCheck;
 
 var defaultId = config.defaultSystemId;
 var appsList = config.appsList;
+
+function isJSON(text) {
+  let isValid = false;
+  
+  if (typeof text !== 'string' || (typeof text === 'string' && text.length === 0)) {
+    return isValid;
+  }
+  
+  try {
+    JSON.parse(text);
+    isValid = true;
+  } catch (e) {
+  }
+  
+  return isValid;
+}
 
 function newRequest(res, model, threadId, prompt, type, urls, voice, systemId, startingMessage) {
   if (!urls) urls = []
@@ -60,12 +73,24 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
   var output
   if (startingMessage) {
     output = await (await modelObj.actions).completion(threadId, prompt, model, type, urls, true, startingMessage)
-    output = marked.parse(output)
     res.send({status: 'OK', content: output})
     return
   }
   
   output = await (await modelObj.actions).message(threadId, prompt, model, type, urls, true, startingMessage)
+  var appCheck = output
+  while (appCheck.startsWith('\n')) appCheck = appCheck.slice(1)
+  while (appCheck.endsWith('\n')) appCheck = appCheck.slice(0, -1)
+  if (appCheck.startsWith('```json')) appCheck = appCheck.slice(7)
+  if (appCheck.endsWith('```')) appCheck = appCheck.slice(0, -3)
+  while (appCheck.startsWith('\n')) appCheck = appCheck.slice(1)
+  while (appCheck.endsWith('\n')) appCheck = appCheck.slice(0, -1)
+
+  var currentApp
+  if (isJSON(appCheck) && !!appsList) {
+    appCheck = JSON.parse(appCheck)
+    if (appCheck.isApp) currentApp = appCheck
+  }
 
   if (checkPrompt.includes('{userPrompt}')) {
     if (prompt.includes(systemId)) {
@@ -79,36 +104,12 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
     checkPrompt = checkPrompt.replace('{aiResponse}', output)
   }
 
-  var currentApp
-  if (!!appsList) {
-    for (let i = 0; i < output.split('').length; i++) {
-      var nOutput = output.slice(i)
-      while (nOutput.startsWith('`')) nOutput = nOutput.slice(1)
-      while (nOutput.endsWith('`')) nOutput = nOutput.slice(0, -1)
-      if (nOutput.startsWith('`')) nOutput = nOutput.slice(1)
-      if (nOutput.endsWith('`')) nOutput = nOutput.slice(0, -1)
-
-      if (
-        (nOutput.startsWith('{') && nOutput.endsWith('}')) || 
-        (nOutput.startsWith('[') && nOutput.endsWith(']'))
-      ) {
-        nOutput = JSON.parse(nOutput)
-      }
-      if (typeof nOutput === 'object') {
-        if (nOutput.isApp && nOutput.appName) {
-          currentApp = nOutput
-        }
-      }
-    }
-  }
-    
   if (currentApp) {
     res.send({status: 'appOK', content: currentApp})
   }
   else {
-    var cOutput = await (await modelObj.actions).message(threadId, checkPrompt, model, type, urls, false, startingMessage)
+    var cOutput = await (await modelObj.actions).completion(threadId, checkPrompt, model, type, urls, false, startingMessage)
     if (cOutput === 'good') {
-      output = marked.parse(output)
       res.send({status: 'OK', content: output})
     }
     else if (cOutput === 'not good') {
@@ -119,7 +120,6 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
       res.send({status: 'Error', content: output})
     }
     else {
-      output = marked.parse(output)
       res.send({status: 'OK', content: output})
     }
   }

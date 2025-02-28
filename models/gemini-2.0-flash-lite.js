@@ -15,7 +15,7 @@ var modelConfig = {
     provider: 'Google',
     model: 'gemini-2.0-flash-lite',
     types: ['text'/*, FileObj('image', 'audio')*/],
-    modelPrompt: 'Unfortunately, you are not yet able to keep context.',
+    // modelPrompt: 'Unfortunately, you are not yet able to keep context.',
 }
 modelConfig.api_key = process.env[`${modelConfig.provider.toUpperCase()}_API_KEY`]
 
@@ -24,15 +24,8 @@ const genAI = new GoogleGenerativeAI(modelConfig.api_key);
 const aiModel = genAI.getGenerativeModel({ model: modelConfig.model });
 
 const conversation = aiModel.startChat();
-const chat = aiModel.startChat();
 
-async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
-    return newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage)
-}
-
-async function newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
-    var messageObj = [prompt]
-
+function handleFiles(messageObj, urls) {
     if (urls) {
         urls.forEach(async url => {
             console.log(url)
@@ -51,6 +44,27 @@ async function newCompletion(threadId, prompt, model, type, urls, useSystem=true
             // )
         })
     }
+    return messageObj
+}
+
+async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
+    var messageObj = [prompt]
+
+    messageObj = handleFiles(messageObj, urls)
+
+    let sendSPrompt = await conversation.sendMessage(systemPrompt);
+
+    let result = await conversation.sendMessage(messageObj);
+
+    return result.response.text()
+}
+
+async function newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
+    const chat = genAI.getGenerativeModel({ model: model }).startChat();
+
+    var messageObj = [prompt]
+
+    messageObj = handleFiles(messageObj, urls)
 
     let result = await chat.sendMessage(messageObj);
 
@@ -58,12 +72,13 @@ async function newCompletion(threadId, prompt, model, type, urls, useSystem=true
 }
 
 async function createThread(model) {
-    let sendSPrompt = await chat.sendMessage(systemPrompt);
+    let sendSPrompt = await conversation.sendMessage(systemPrompt);
+    let sendfMessage = await conversation.sendMessage(config.firstMessage);
     return 'n/a'
 }
 
 async function deleteThread(id) {
-    let sendOPrompt = await chat.sendMessage('This chat is over, thanks!');
+    let sendOPrompt = await conversation.sendMessage('This chat is over, thanks!');
     return 'done!'
 }
 
