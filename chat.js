@@ -33,8 +33,7 @@ var prevValu = ''
 var currValu = ''
 var oSpeechRecognizer = null
 
-function handleUpload(queryString) {
-  var queryString = window.location.search;
+function handleUpload(queryString=location.search) {
   var urlParams = new URLSearchParams(queryString)
 
   fnames = urlParams.get('name')
