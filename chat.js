@@ -5,6 +5,7 @@ var type = 'text'
 var useAmt = -1
 var maxUses = 10
 var maxMessage = `You will now exceed ${maxUses} continuous messages. Please <a href="javascript:location.reload()">Start a New Conversation</a> to send more messages.`
+var messageSpeed = 10
 
 var chatElement
 var langElement
@@ -292,7 +293,7 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
   useAmt++
 }
 
-function newMessage(role, content, moreParams) {
+function newMessage(role, content, moreParams={}) {
   var message = document.createElement('div');
   message.classList.add('message');
   message.classList.add(role);
@@ -302,7 +303,7 @@ function newMessage(role, content, moreParams) {
       if (!!variation === false) variation = 'info'
       message.classList.add(variation)
 
-      if (moreParams.isApp) {
+      if (moreParams?.isApp) {
         checkIfApp(content, moreParams);
         return
       }
@@ -343,7 +344,7 @@ function newMessage(role, content, moreParams) {
     if (!!content) {
       // content = content.replaceAll('&lt;', '<').replaceAll('&gt;', '>')
       doActs();
-      interval = setInterval(doActs, 10);
+      interval = setInterval(doActs, messageSpeed);
     }
     else {
       textSpan.innerHTML = 'Unknown Error'
@@ -369,7 +370,11 @@ function newMessage(role, content, moreParams) {
         sendBtn.onclick = sendMessage
         chatElement.onkeyup = checkForSend
 
-        if (useAmt > maxUses && !moreParams.isApp && !moreParams.isMax) {
+        if (moreParams?.isApp) {
+          newRequest('text', content)
+        }
+    
+        if (useAmt > maxUses && !moreParams?.isApp && !moreParams?.isMax) {
           chatElement.disabled = true
           sendBtn.onclick = function() {}
           chatElement.onkeyup = function() {}

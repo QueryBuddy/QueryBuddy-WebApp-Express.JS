@@ -33,6 +33,7 @@ async function completedActions(run) {
 }
 
 async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
+    console.log(threadId)
     var cArr = [
         {
             "type": "text",

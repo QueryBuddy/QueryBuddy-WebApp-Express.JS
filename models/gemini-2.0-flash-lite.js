@@ -52,13 +52,15 @@ async function newMessage(threadId, prompt, model, type, urls, useSystem=true, s
 
     messageObj = handleFiles(messageObj, urls)
 
+    let sendSPrompt = await conversation.sendMessage(systemPrompt);
+
     let result = await conversation.sendMessage(messageObj);
 
     return result.response.text()
 }
 
 async function newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
-    const chat = aiModel.startChat();
+    const chat = genAI.getGenerativeModel({ model: model }).startChat();
 
     var messageObj = [prompt]
 
