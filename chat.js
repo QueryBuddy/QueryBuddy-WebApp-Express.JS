@@ -37,7 +37,7 @@ var oSpeechRecognizer = null
 
 function handleUpload(query) {
   query = query ?? queryString ?? window.location.search
-  var params = new URLSearchParams(queryString)
+  var params = new URLSearchParams(query)
 
   fnames = params.get('name')
   filelocation = params.get('filelocation')
