@@ -50,10 +50,6 @@ submitBtn.addEventListener('click', async e => {
   const formData = new FormData();
   formData.append('image', file);
 
-  if (parent !== window) {
-    if ()
-  }
-
   var response = await fetch(`/uploadFile`, {
     method: 'POST',
     body: formData
@@ -62,13 +58,22 @@ submitBtn.addEventListener('click', async e => {
   if (response.ok) {
     var json = await response.json()
     console.log(json)
-    if (parent !== window && parent.appsData) {
-      if (parent.appsData.sendLiveImage) {
-        parent.appsData.sendLiveImage([json])
-      }
-      else console.error('File upload failed');
-    }
-    else console.error('File upload failed');
+    // if (parent !== window) {
+    //   if (parent.handleUpload) {
+    //     parent.handleUpload(location.search)
+    //   }
+    //   else {
+    //     console.error('File upload failed');
+    //   }
+    // }
+  
+    // if (parent !== window && parent.appsData) {
+    //   if (parent.appsData.sendLiveImage) {
+    //     parent.appsData.sendLiveImage([json])
+    //   }
+    //   else console.error('File upload failed');
+    // }
+    // else console.error('File upload failed');
   }
 })
 
