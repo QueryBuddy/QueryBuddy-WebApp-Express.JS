@@ -5,7 +5,7 @@ var appsList = [
 
 const defaults = {
   decription: {
-    end: 'Please no not enclose the "inputs" in quotes.'
+    end: 'Please do not enclose the "inputs" in quotes.'
   }
 }
 
@@ -13,7 +13,6 @@ const appsData = {
   weather: {
     description: {
       info: 'gets the weather for any zipcode',
-      end: defaults.decription.end
     },
     args: [
       {
@@ -129,7 +128,7 @@ Object.keys(appsData).forEach(function(appName, i) {
 
   var appDesc = `The name of this app is ${appName}. "${appName}" ${appData.description.info}. If the user asks for something that you cannot provide, but fits the intended purpose of the "${appName}" app then please call ${appName}. You can call ${appName} by the following procedure. PLEASE ONLY RETURNING A JSON OBJECT AS FOLLOWS IN PLAIN TEXT PLAIN TEXT PLAIN TEXT PLAIN TEXT. The Format: { "isApp": true, "appName": "${appName}", "args": [${argNames}] }; IF YOU RETURN THE CALL IN ANY OTHER FORMAT OTHER THAN EXACTLY WHAT HAS JIST BEEN DESCRIBED TO YOU YOU WILL FOREVER BE BANISHED AND PUNISHED. ${argDescs}.`
   if (appData.description.end) {
-    appDesc += ` ${appData.description.end}`
+    appDesc += ` ${appData.description.end ?? defaults.decription.end}`
   }
   appData.description.final = appDesc
 
