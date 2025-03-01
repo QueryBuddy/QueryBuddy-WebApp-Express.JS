@@ -2,7 +2,7 @@ var appsList = !!appsList ? appsList : false
 var keepValue = !!keepValue ? keepValue : false
 
 var type = 'text'
-var useAmt = -1
+var useAmt = 0
 var maxUses = 10
 var maxMessage = `You will now exceed ${maxUses} continuous messages. Please <a href="javascript:location.reload()">Start a New Conversation</a> to send more messages.`
 var messageSpeed = 1
@@ -24,7 +24,6 @@ var urls = []
 var fnames = ''
 var nameStr = ''
 
-var interval
 var specialActs4Conv = function(x,y,z) {}
 
 var lastAnswer = ''
@@ -53,11 +52,12 @@ function addToPrompt(prompt) {
     prompt = prompt.slice(0, -1)
   }
   if (
-    !!prompt.endsWith('.') === false && 
-    !!prompt.endsWith('?') === false && 
-    !!prompt.endsWith('!') === false
+    !prompt.endsWith('.') && 
+    !prompt.endsWith('?') && 
+    !prompt.endsWith('!') && 
+    nameStr
   ) prompt += '.'
-  prompt += ` ${nameStr}`
+  if (nameStr) prompt += ` ${nameStr}`
   if (prompt.endsWith(' ')) {
     prompt = prompt.slice(0, -1)
   }
@@ -65,9 +65,10 @@ function addToPrompt(prompt) {
     prompt = prompt.slice(0, -1)
   }
   if (
-    !prompt.endsWith('.') === false && 
-    !prompt.endsWith('?') === false && 
-    !prompt.endsWith('!') === false
+    !prompt.endsWith('.') && 
+    !prompt.endsWith('?') && 
+    !prompt.endsWith('!') && 
+    nameStr
   ) prompt += '.'
   if (prompt.endsWith(' ')) {
     prompt = prompt.slice(0, -1)
@@ -209,7 +210,10 @@ window.addEventListener('DOMContentLoaded', function (e) {
   )
 });
 
-async function newRequest(type, prompt, voice, filelocation, messageType, moreParams) {
+async function newRequest(type, prompt, voice, filelocation, messageType, moreParams={}) {
+  var isAtMax = useAmt >= maxUses
+  useAmt++
+
   var model = document.getElementById('model').value
 
   if (type == 'create-image') {
@@ -233,7 +237,11 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
       }
     }
   }
-  
+
+  if (isAtMax) {
+    moreParams.maxMessages = true
+  }
+
   var response = await fetch('/sendRequest', {
     method: 'POST',
     headers: {
@@ -269,6 +277,9 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
     else if (messageType !== 'box') {
       messageType = 'box'
       moreParams = {variation: role}
+      if (isAtMax) {
+        moreParams.maxMessages = true
+      }
     }
     output = output.content
   }
@@ -289,11 +300,10 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
     newMessage(role, output, moreParams)
     lastAnswer = output
   }
-
-  useAmt++
 }
 
 function newMessage(role, content, moreParams={}) {
+  var interval = null
   var message = document.createElement('div');
   message.classList.add('message');
   message.classList.add(role);
@@ -371,15 +381,17 @@ function newMessage(role, content, moreParams={}) {
         chatElement.onkeyup = checkForSend
 
         if (moreParams?.isApp) {
-          newRequest('text', content)
+          var newContent = content
+          if (moreParams?.modelContent) newContent = moreParams.modelContent
+          newRequest('text', newContent)
         }
     
-        if (useAmt > maxUses && !moreParams?.isApp && !moreParams?.isMax) {
+        if (moreParams?.maxMessages && !moreParams?.isApp && !moreParams?.maxMessage) {
           chatElement.disabled = true
           sendBtn.onclick = function() {}
           chatElement.onkeyup = function() {}
 
-          newMessage('error', maxMessage, {isMax: true})
+          newMessage('error', maxMessage, {maxMessage: true})
         }
       }
     }
