@@ -13,6 +13,8 @@ photoBtn.onclick = function(e) {
 var queryString = window.location.search
 var urlParams = new URLSearchParams(queryString)
 
+var uQuerys = ''
+
 var sucess = urlParams.get('success') === 'true' ? true : false
 if (sucess && window.parent !== window && window.parent.handleUpload) {
   window.parent.handleUpload(location.search)
@@ -20,23 +22,55 @@ if (sucess && window.parent !== window && window.parent.handleUpload) {
 else {
   var prompt = urlParams.get('prompt')
   if (!!prompt) {
-    form.setAttribute('action', `${form.getAttribute('action')}?p=${prompt}`)
+    if (!uQuerys) uQuerys += '?'
+    else uQuerys += '&'
+    uQuerys += prompt
   }
   var type = urlParams.get('type')
-  if (!!prompt) {
-    form.setAttribute('action', `${form.getAttribute('action')}?t=${type}`)
+  if (!!type) {
+    if (!uQuerys) uQuerys += '?'
+    else uQuerys += '&'
+    uQuerys += type
   }
 
   var isBulk = urlParams.get('isBulk') === 'true' ? true : false
   if (isBulk) {
-    form.setAttribute('action', `${form.getAttribute('action')}?isBulk=${isBulk}`)
-  }
-
-  var hasParent = urlParams.get('hasParent') === 'true' ? true : false
-  if (hasParent) {
-    form.setAttribute('action', `${form.getAttribute('action')}?hasParent=${hasParent}`)
+    if (!uQuerys) uQuerys += '?'
+    else uQuerys += '&'
+    uQuerys += isBulk
   }
 }
+
+var submitBtn = document.querySelector('input[type="submit"]')
+
+submitBtn.addEventListener('click', async e => {
+  var files = document.querySelector('input[type="file"]').files
+  var file = files[0]
+
+  const formData = new FormData();
+  formData.append('image', file);
+
+  if (parent !== window) {
+    if ()
+  }
+
+  var response = await fetch(`/uploadFile`, {
+    method: 'POST',
+    body: formData
+  })
+
+  if (response.ok) {
+    var json = await response.json()
+    console.log(json)
+    if (parent !== window && parent.appsData) {
+      if (parent.appsData.sendLiveImage) {
+        parent.appsData.sendLiveImage([json])
+      }
+      else console.error('File upload failed');
+    }
+    else console.error('File upload failed');
+  }
+})
 
 function removeActive() {
   photoArea.classList.remove('active')

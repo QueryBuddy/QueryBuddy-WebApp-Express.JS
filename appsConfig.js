@@ -38,7 +38,16 @@ const appsData = {
     hostOnly: true,
   }, 
   searchResult: {
-    hostOnly: true,
+    description: {
+      info: 'gets the search results for any query',
+      end: 'Please put all the queries in to a list string that can be parsed using the JavaScript "JSON.parse()" method. If only one query: return ["{query}"] without quotes around the JSON array string.'
+    },
+    args: [
+      {
+        name: 'links',
+        description: 'a "JSON.parse()"able list string of links, if only one: return ["{link}"]',
+      }
+    ],
   }, 
   searchResultPages: {
     hostOnly: true,
@@ -86,7 +95,7 @@ const appsData = {
   },
   liveImage: {
     description: {
-      info: 'can be used to take a live photo of the user (ex: ehat the use is wearing, sign-language, etc.). Also, if the user asks you for something that would require a photo of them, just jump the gun and call this to take the photo',
+      info: 'can be used to take a live photo of the user (ex: what the use is wearing, sign-language, etc.). Also, if the user asks you for something that would require a photo of them, just jump the gun and call this to take the photo',
       end: ''
     },
     args: [
