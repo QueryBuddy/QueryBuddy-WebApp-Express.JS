@@ -36,7 +36,7 @@ const appsData = {
   searchResult: {
     description: {
       info: 'gets the search results for any query',
-      end: 'Please put all the queries in to a list string that can be parsed using the JavaScript "JSON.parse()" method. If only one query: return ["{query}"] without quotes around the JSON array string.'
+      end: 'Please put all the queries in to a list string that can be parsed using the JavaScript "JSON.parse()" method. If only one query: return ["{query}"] without quotes around the JSON array string. After calling this, call webPageContent with the links to get the content of the web pages. Make sure to cite sources.'
     },
     args: [
       {
@@ -123,7 +123,7 @@ Object.keys(appsData).forEach(function(appName, i) {
     argDescs += `${argName} is ${arg.description}`
   })
 
-  var appDesc = `The name of this app is ${appName}. "${appName}" ${appData.description.info}. If the user asks for something that you cannot provide, but fits the intended purpose of the "${appName}" app then please call ${appName}. You can call ${appName} by the following procedure. PLEASE ONLY RETURNING A JSON OBJECT AS FOLLOWS IN PLAIN TEXT PLAIN TEXT PLAIN TEXT PLAIN TEXT. The Format: { "isApp": true, "appName": "${appName}", "args": [${argNames}] }; IF YOU RETURN THE CALL IN ANY OTHER FORMAT OTHER THAN EXACTLY WHAT HAS JIST BEEN DESCRIBED TO YOU YOU WILL FOREVER BE BANISHED AND PUNISHED. ${argDescs}.`
+  var appDesc = `The name of this app is ${appName}. "${appName}" ${appData.description.info}. If the user asks for something that you cannot provide, but fits the intended purpose of the "${appName}" app then please call ${appName}. You can call ${appName} by the following procedure. PLEASE ONLY RETURNING A JSON OBJECT AS FOLLOWS IN PLAIN TEXT. The Format: \`\`\`json{ "isApp": true, "appName": "${appName}", "args": [${argNames}] }\`\`\`; IF YOU RETURN THE CALL ANY OTHER WAY, IT  WON'T WORK. ${argDescs}.`
   if (appData.description.end) {
     appDesc += ` ${appData.description.end ?? defaults.decription.end}`
   }
