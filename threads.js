@@ -1,4 +1,4 @@
-var threads = []
+var thread = ''
 
 createThread()
 window.addEventListener("beforeunload", deleteThread);
@@ -12,18 +12,19 @@ async function createThread() {
       body: JSON.stringify({}),
     });
 
-    threads = await response.json()
+    var threads = await response.json()
+
+    thread = threads.id
     // alert(threads)
 }
 
 async function deleteThread() {
-    if (!threads) return
-    alert(threads)
+    if (!thread) return
     await fetch('/deleteThread', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({threads: threads}),
+      body: JSON.stringify({thread: thread}),
     });
 }
