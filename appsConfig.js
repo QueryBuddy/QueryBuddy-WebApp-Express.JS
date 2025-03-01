@@ -1,8 +1,5 @@
 var appsStr = `Apps List: \n`
 
-var appsList = [
-]
-
 const defaults = {
   decription: {
     end: 'Please do not enclose the "inputs" in quotes.'
