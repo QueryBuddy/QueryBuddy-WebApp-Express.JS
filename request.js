@@ -92,36 +92,36 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
     if (appCheck.isApp) currentApp = appCheck
   }
 
-  if (checkPrompt.includes('{userPrompt}')) {
-    if (prompt.includes(systemId)) {
-      prompt = prompt.split(systemId)
-      prompt.pop()
-      prompt = prompt.join(systemId)
-    }
-    checkPrompt = checkPrompt.replace('{userPrompt}', prompt)
-  }
-  if (checkPrompt.includes('{aiResponse}')) {
-    checkPrompt = checkPrompt.replace('{aiResponse}', output)
-  }
+  // if (checkPrompt.includes('{userPrompt}')) {
+  //   if (prompt.includes(systemId)) {
+  //     prompt = prompt.split(systemId)
+  //     prompt.pop()
+  //     prompt = prompt.join(systemId)
+  //   }
+  //   checkPrompt = checkPrompt.replace('{userPrompt}', prompt)
+  // }
+  // if (checkPrompt.includes('{aiResponse}')) {
+  //   checkPrompt = checkPrompt.replace('{aiResponse}', output)
+  // }
 
   if (currentApp) {
     res.send({status: 'appOK', content: currentApp})
   }
   else {
-    var cOutput = await (await modelObj.actions).completion(threadId, checkPrompt, model, type, urls, false, startingMessage)
-    if (cOutput === 'good') {
+  //   var cOutput = await (await modelObj.actions).completion(threadId, checkPrompt, model, type, urls, false, startingMessage)
+  //   if (cOutput === 'good') {
+  //     res.send({status: 'OK', content: output})
+  //   }
+  //   else if (cOutput === 'not good') {
+  //     if (errorCheck.includes('{errorMessage}')) {
+  //       errorCheck = errorCheck.replace('{errorMessage}', output)
+  //     }
+  //     output = await (await modelObj.actions).completion(threadId, errorCheck, model, type, urls, false, startingMessage)
+  //     res.send({status: 'Error', content: output})
+  //   }
+  //   else {
       res.send({status: 'OK', content: output})
-    }
-    else if (cOutput === 'not good') {
-      if (errorCheck.includes('{errorMessage}')) {
-        errorCheck = errorCheck.replace('{errorMessage}', output)
-      }
-      output = await (await modelObj.actions).completion(threadId, errorCheck, model, type, urls, false, startingMessage)
-      res.send({status: 'Error', content: output})
-    }
-    else {
-      res.send({status: 'OK', content: output})
-    }
+  //   }
   }
 }
 
