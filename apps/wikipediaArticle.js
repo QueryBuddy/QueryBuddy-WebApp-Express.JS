@@ -1,33 +1,32 @@
-import fs from 'fs';
-import request from 'request';
+import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 
-function getContent(req, res) {
-  var base = 'https://www.wikipedia.org/search-redirect.php?family=Wikipedia&search='
-  var url = ''
-  if (req.query.query) {
-    url = base + req.query.query
+async function getContent(req, res) {
+  var q = req.query.q || 'Wikipedia'
+  var url = `https://en.wikipedia.org/wiki/${q}`
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    const body = await response.text();
+    
+    var dom = new jsdom.JSDOM(body);
+    var content = dom.window.document.querySelector('#mw-content-text');
+    var paragraphs = content.querySelectorAll('p');
+    var text = '';
+    
+    paragraphs.forEach(function(p) {
+      text += p.textContent + '\n';
+    });
+    
+    res.send(text);
+  } catch (error) {
+    console.error('Error fetching Wikipedia article:', error);
+    res.status(500).send('Failed to fetch Wikipedia article');
   }
-
-  if (url.includes('*')) url = url.replace('*', '')
-  request(
-    { url: url }, 
-    function(error, result, body) {
-      if (!!body) {
-        var dom = new jsdom.JSDOM(body);
-        body = dom.window.document.querySelector('body').outerHTML
-        var content = dom.window.document.querySelector('[class*="content-"]:not(html):not([class*="menu"])')
-        if (content) body = content.innerHTML
-
-        if (body.includes('<')) body = body.split('<').join('&lt')
-        if (body.includes('>')) body = body.split('>').join('&gt')
-      }
-      else {
-        body = 'ERROR'
-      }
-      res.send(body)
-    }
-  );
 }
 
 export default getContent
