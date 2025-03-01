@@ -22,7 +22,7 @@ async function getContent(req, res) {
   }
 
   params = `&${params.join('&')}`
-  var url = `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_API_KEY}&cx=750a504f8a13f45f4&q=${q}${params}`
+  var url = `https://www.googleapis.com/customsearch/v1?key=${process.env.SEARCH_API_KEY}&cx=750a504f8a13f45f4&q=${q}${params}`
 
   try {
     const response = await fetch(url);
