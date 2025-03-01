@@ -62,7 +62,7 @@ var appsData = {
 
       res = res.replaceAll('&lt;', '<').replaceAll('&gt;', '>')
 
-      newMessage('app', res, {isApp: true, appName: 'webPageContent'})
+      newMessage('app', res, {isApp: true, appName: 'webPageContent', modelContent: md})
     })
   },
   openLink: async function(params) {
