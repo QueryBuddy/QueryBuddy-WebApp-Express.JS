@@ -1,11 +1,11 @@
-import request from 'request';
+import fetch from 'node-fetch';
 
 var unitsObj = {
   C: 'Metric', 
   F: 'Imperial', 
 }
 
-function getForecast(req, res) {
+async function getForecast(req, res) {
   var apiKey = process.env['OPENWEATHER_API_KEY'];
   
   var zipcode = req.query.zip
@@ -13,19 +13,21 @@ function getForecast(req, res) {
   if (zipcode.endsWith('"')) zipcode = zipcode.slice(0, -1)
   var unit = unitsObj[req.query.unit]
 
-  request.post(
-    { url: `https://api.openweathermap.org/data/2.5/weather?zip=${zipcode}&units=${unit}&appid=${apiKey}` }, 
-    function(err, response, body) {
-      responseReceivedHandler(req, res, err, response, body)
-    }
-  )
+  try {
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?zip=${zipcode}&units=${unit}&appid=${apiKey}`, {
+      method: 'POST'
+    });
+    const body = await response.json();
+    await responseReceivedHandler(req, res, null, response, body);
+  } catch (error) {
+    console.error('Error fetching weather data:', error);
+    res.status(500).send('Error fetching weather data');
+  }
 }
 
-function responseReceivedHandler(req, res, err, response, body) {
+async function responseReceivedHandler(req, res, err, response, body) {
   var responseType = req.query.responseType
   
-  body = JSON.parse(body)
-
   if (responseType === 'JSON') {
     res.send(body)
     return
