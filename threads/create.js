@@ -1,24 +1,62 @@
+import fs from 'fs'
+import path from 'path'
+import { v4 as uuidv4 } from 'uuid'
+
 import config from '../config.js'
-const models = config.models
+
+// Ensure userThreads directory exists
+const userThreadsDir = './userThreads'
+if (!fs.existsSync(userThreadsDir)) {
+    fs.mkdirSync(userThreadsDir)
+}
 
 async function createThread(req, res) {
-    var threads = {}
-    var keys = Object.keys(models)
+    const threadId = uuidv4()
 
-    var i = 0
-    Object.keys(models).forEach(async model => {
-        if (model.startsWith('_')) {
-            keys.splice(i, 1)
-            i++
-            return
-        }
-        await (await models[model].actions).thread.create(model)
-            .then(thread => threads[model] = thread)
-            .then(thread => {
-                if (i === keys.length) res.json(threads)
-                i++
+    // Create thread JSON file with messages array that includes roles
+
+
+    // Prepare all messages for sending
+    const messages = []
+    
+    // Add system message if needed
+    if (config.systemPrompt) {
+        messages.push({
+            role: 'user',
+            content: 'FirstMessage',
+            timestamp: new Date().toISOString()
+        })
+        messages.push({
+            role: 'system',
+            content: config.systemPrompt,
+            timestamp: new Date().toISOString()
+        })
+    }
+    
+    if (config.firstMessage) {
+        if (!config.systemPrompt) {
+            messages.push({
+                role: 'user',
+                content: 'FirstMessage',
+                timestamp: new Date().toISOString()
             })
-    })
+        }
+        messages.push({
+            role: 'system',
+            content: config.firstMessage,
+            timestamp: new Date().toISOString()
+        })
+    }
+    
+    const threadData = {
+        id: threadId,
+        messages: messages  // Each message will be {role: 'user'|'assistant', content: string}
+    }
+
+    // Save thread data to JSON file
+    const filePath = path.join(userThreadsDir, `${threadId}.json`)
+    fs.writeFileSync(filePath, JSON.stringify(threadData, null, 2))
+    res.json({ id: threadId })
 }
 
 export default createThread
