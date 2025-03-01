@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { getThreadMessages, addMessageToThread, VALID_ROLES } from '../threads/messages.js';
 const openai = new OpenAI();
 
 import config from '../config.js'
@@ -33,16 +34,30 @@ async function completedActions(run) {
 }
 
 async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
-    console.log(threadId)
-    var cArr = [
+    // Get previous messages from thread file
+    const previousMessages = getThreadMessages(threadId)
+    
+    // Prepare messages array for completion
+    const messages = []
+    
+    // Add previous messages
+    previousMessages.forEach(msg => {
+        messages.push({
+            role: msg.role,
+            content: msg.content
+        })
+    })
+    
+    // Prepare current message with any attachments
+    var currentContent = [
         {
             "type": "text",
             "text": prompt,
-        },
+        }
     ]
 
     urls.forEach(u => {
-        cArr.push({
+        currentContent.push({
             "type": "image_url",
             "image_url": {
                 "url": u,
@@ -51,65 +66,40 @@ async function newMessage(threadId, prompt, model, type, urls, useSystem=true, s
         })
     })
 
-    const message = await openai.beta.threads.messages.create(
-        threadId,
-        {
-            role: "user",
-            content: cArr,
-        }
-    );
+    // Add current message
+    messages.push({
+        role: "user",
+        content: currentContent
+    })
 
-    var allRuns = await openai.beta.threads.runs.list(
-        threadId
-    );
+    // Save user message to thread file
+    addMessageToThread(threadId, {
+        role: VALID_ROLES.USER,
+        content: prompt
+    })
 
-    var hasActiveRun = allRuns.data.filter(run => run.status === 'running').length > 0
+    try {
+        const completion = await openai.chat.completions.create({
+            messages: messages,
+            model: model || 'gpt-4',
+        });
 
-    var run
-    if (!hasActiveRun) {
-        run = await openai.beta.threads.runs.createAndPoll(
-        threadId,
-        { 
-            assistant_id: config.assistantId,
-            instructions: systemPrompt
-        }
-        );
-    }
-    else {
-        run = await openai.beta.threads.runs.retrieve(
-            threadId,
-            allRuns.body.last_id
-        );
-    
-    }
-    
-    if (run.status === 'completed') {
-        return completedActions(run)
-    }
-    else if (run.status === 'queued') {
-        var i = 0
-        var max = 5
+        const response = completion.choices[0].message.content
+        
+        // Save assistant response to thread file
+        addMessageToThread(threadId, {
+            role: VALID_ROLES.ASSISTANT,
+            content: response
+        })
 
-        while (run.status === 'queued' && i < max) {
-            run = await openai.beta.threads.runs.retrieve(
-                threadId,
-                run.id
-            );
-            i++
-        }
-
-        if (run.status === 'completed') {
-            return completedActions(run)
-        }
-        else {
-            return `Error: Unable to create a new message or retrieve the last one with run status of ${run.status}.`
-        }
-    }
-    else if (run.status === 'failed') {
-        return `Error ${run.last_error.code}: ${run.last_error.message}`
-    }
-    else {
-        return `Error: Unable to create a new message or retrieve the last one.`
+        return response
+    } catch (error) {
+        const errorMsg = `Error: ${error.message}`
+        addMessageToThread(threadId, {
+            role: VALID_ROLES.ASSISTANT,
+            content: errorMsg
+        })
+        return errorMsg
     }
 }
 
@@ -145,30 +135,4 @@ async function newCompletion(threadId, prompt, model, type, urls, useSystem=true
     return completion.choices[0].message.content
 }
 
-async function createThread() {
-    const thread = await openai.beta.threads.create();
-
-    const message = await openai.beta.threads.messages.create(
-      thread.id,
-        {
-            role: 'assistant',
-            content: config.firstMessage
-        }
-    );
-
-    return thread.id
-}
-
-async function deleteThread(id) {
-    var thread = await openai.beta.threads.retrieve(id)
-
-    if (thread) {
-        var resp = await openai.beta.threads.del(id)
-        return resp
-    }
-    else {
-        return thread
-    }
-}
-
-export default { config: modelConfig, message: newMessage, completion: newCompletion, thread: { create: createThread, delete: deleteThread } }
+export default { config: modelConfig, message: newMessage, completion: newCompletion }
