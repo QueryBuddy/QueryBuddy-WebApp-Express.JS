@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getThreadMessages, addMessageToThread, VALID_ROLES } from '../threads/messages.js';
 import {
     FileState,
     GoogleAICacheManager,
@@ -15,15 +16,13 @@ var modelConfig = {
     provider: 'Google',
     model: 'gemini-2.0-flash-lite',
     types: ['text'/*, FileObj('image', 'audio')*/],
-    // modelPrompt: 'Unfortunately, you are not yet able to keep context.',
+    modelPrompt: 'YOU ARE NOT UNDER DEVELOPMENT. THER USER\'S NAME IS NOT JOHN.',
 }
 modelConfig.api_key = process.env[`${modelConfig.provider.toUpperCase()}_API_KEY`]
 
 
 const genAI = new GoogleGenerativeAI(modelConfig.api_key);
-const aiModel = genAI.getGenerativeModel({ model: modelConfig.model });
 
-const conversation = aiModel.startChat();
 
 function handleFiles(messageObj, urls) {
     if (urls) {
@@ -48,21 +47,59 @@ function handleFiles(messageObj, urls) {
 }
 
 async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
-    var messageObj = [prompt]
+    // Get previous messages from thread file
+    var oldMessages = getThreadMessages(threadId)
 
+    var previousMessages = []
+    previousMessages.forEach((msg, i) => {
+        if (msg.role == VALID_ROLES.ASSISTANT) {
+            msg.role = 'model'
+        }
+        msg.parts = [{text: msg.content}]
+
+        previousMessages.push({role: msg.role, parts: [{text: msg.content}]})
+    })
+    
+    const chat = genAI.getGenerativeModel({ model: modelConfig.model }).startChat({ history: previousMessages });
+    
+    // Add all previous messages
+    
+    // Handle current message
+    var messageObj = prompt
     messageObj = handleFiles(messageObj, urls)
-
-    let sendSPrompt = await conversation.sendMessage(systemPrompt);
-
-    let result = await conversation.sendMessage(messageObj);
-
-    return result.response.text()
+    
+    // Save user message
+    addMessageToThread(threadId, {
+        role: VALID_ROLES.USER,
+        content: prompt
+    })
+    
+    try {
+        // Send current message and get response
+        let result = await chat.sendMessage(messageObj);
+        const response = result.response.text();
+        
+        // Save assistant response
+        addMessageToThread(threadId, {
+            role: VALID_ROLES.ASSISTANT,
+            content: response
+        })
+        
+        return response
+    } catch (error) {
+        const errorMsg = `Error: ${error.message}`
+        addMessageToThread(threadId, {
+            role: VALID_ROLES.ASSISTANT,
+            content: errorMsg
+        })
+        return errorMsg
+    }
 }
 
 async function newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
     const chat = genAI.getGenerativeModel({ model: model }).startChat();
 
-    var messageObj = [prompt]
+    var messageObj = prompt
 
     messageObj = handleFiles(messageObj, urls)
 
@@ -71,15 +108,4 @@ async function newCompletion(threadId, prompt, model, type, urls, useSystem=true
     return result.response.text()
 }
 
-async function createThread(model) {
-    let sendSPrompt = await conversation.sendMessage(systemPrompt);
-    let sendfMessage = await conversation.sendMessage(config.firstMessage);
-    return 'n/a'
-}
-
-async function deleteThread(id) {
-    let sendOPrompt = await conversation.sendMessage('This chat is over, thanks!');
-    return 'done!'
-}
-
-export default { config: modelConfig, message: newMessage, completion: newCompletion, thread: { create: createThread, delete: deleteThread } }
+export default { config: modelConfig, message: newMessage, completion: newCompletion }
