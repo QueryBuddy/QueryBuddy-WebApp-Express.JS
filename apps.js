@@ -27,6 +27,22 @@ var appsData = {
       newMessage('app', 'Unable to get country.', {appName: 'weather'})
     }
   },
+  searchResult: async function(params) {
+    var queries = params[0]
+    if (typeof queries !== 'object') queries = [queries]
+
+    queries.forEach(async function(query, i) {
+      var response = await fetch(`/getSearchResult?q=${query}`)
+      if (!response.ok) {
+        newMessage('app', 'Unable to get search result.', {appName: 'searchResult'})
+        return
+      }
+      var results = await response.json()
+
+      // newMessage('app', res, {isApp: true, appName: 'searchResult'})
+      newRequest('text', JSON.stringify(results))
+    })
+  },
   webPageContent: async function(params) {
     var links = params[0]
     if (typeof links !== 'object') links = [links]
