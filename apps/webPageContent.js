@@ -1,4 +1,3 @@
-import fs from 'fs';
 import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 
@@ -11,57 +10,54 @@ async function getContent(req, res) {
     return
   }
 
-  if (!url.includes('://')) url = `https://${url}`
-
   if (url.includes('*')) url = url.replace('*', '')
 
-  var response = await fetch(url)
-  var body = await response.text()
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    let body = await response.text();
 
+    if (body) {
+      if (scope2 !== 'none') {
+        var dom = new jsdom.JSDOM(body);
+        body = dom.window.document.querySelector(scope2)
+        if (body.outerHTML === '<body>\n</body>') {
+          body.innerHTML = 'ERROR: Unable to get contents of the requested page. Please check the URL and try again.'
+        }
+        
+        var selectors = [
+          'style',
+          'script', 
+          'script',
+          'svg',
+          'link',
+        ]
 
-  var dom = new jsdom.JSDOM(body);
+        selectors.forEach(function(m, i) {
+          var mS = body.querySelectorAll(m)
+          if (mS) {
+            mS.forEach(function(em, i) {
+              em.remove()
+            })
+          }
+        })
+      
+        body = body.innerHTML
+        if (body.includes('<')) body = body.split('<').join('&lt;')
+        if (body.includes('>')) body = body.split('>').join('&gt;')
+      }
+      else {
+        body = 'ERROR'
+      }
 
-  if (scope2 !== 'none') {
-    if (dom.window.document.querySelector(scope2).querySelectorAll('*').length < 1) {
-      body = 'ERROR: Unable to get contents of the requested page. Please check the URL and try again.'
-      res.send(body)
-      return
+      res.send(`<pre>${body}</pre>`)
     }
-    
-    body = dom.window.document.querySelector(scope2)
+  } catch (error) {
+    res.send('ERROR: Unable to get contents of the requested page. Please check the URL and try again.')
   }
-  else {
-    if (dom.window.document.querySelectorAll('*').length < 1) {
-      body = 'ERROR: Unable to get contents of the requested page. Please check the URL and try again.'
-      res.send(body)
-      return
-    }
-    
-    body = dom.window.document
-  }
-
-
-  
-  var selectors = [
-    'style',
-    'script',
-    'script',
-    // 'svg.+',
-    'link',
-  ]
-
-  selectors.forEach(s => {
-    var matches = body.querySelectorAll(s)
-    matches.forEach(m => {
-      m.remove()
-    })
-  })
-
-  body = body.innerHTML
-  if (body.includes('<')) body = body.split('<').join('&lt;')
-  if (body.includes('>')) body = body.split('>').join('&gt;')
-    
-  res.send(`<pre>${body}</pre>`)
 }
 
 export default getContent
