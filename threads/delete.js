@@ -1,23 +1,18 @@
-import config from '../config.js'
-const models = config.models
-var keys = Object.keys(models)
+import fs from 'fs'
+import path from 'path'
+
+const userThreadsDir = './userThreads'
 
 async function deleteThread(req, res) {
-    var threads = req.body.threads
+    const threadId = req.body.thread
 
-    var i = 0
-    keys.forEach(async model => {
-        if (model.startsWith('_')) {
-            keys.splice(i, 1)
-            i++
-            return
-        }
-        await (await models[model].actions).thread.delete(threads[model])
-            .then(() => {
-                if (i === keys.length) res.json(threads)
-                i++
-            })
-    })
+    try {
+        const filePath = path.join(userThreadsDir, `${threadId}.json`)
+        fs.unlinkSync(filePath)
+        res.json({ status: 'success', threadId })
+    } catch (error) {
+        res.status(404).json({ status: 'error', message: 'Thread not found' })
+    }
 }
 
 export default deleteThread
