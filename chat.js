@@ -5,7 +5,7 @@ var type = 'text'
 var useAmt = -1
 var maxUses = 10
 var maxMessage = `You will now exceed ${maxUses} continuous messages. Please <a href="javascript:location.reload()">Start a New Conversation</a> to send more messages.`
-var messageSpeed = 10
+var messageSpeed = 1
 
 var chatElement
 var langElement
@@ -220,7 +220,7 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
 
   var reqObj = {p: prompt, type: type, model: model}
 
-  if (!!threads && !!threads[model]) reqObj.thread = threads[model]
+  if (!!thread) reqObj.thread = thread
   if (!!filelocation) reqObj.fl = filelocation
   if (!!urls && Array.isArray(urls) && urls.length > 0) reqObj.urls = urls
   if (!!voice) reqObj.systemid = voice
