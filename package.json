@@ -21,7 +21,7 @@
     "jsdom": "^24.0.0",
     "marked": "^13.0.1",
     "multer": "^1.4.5-lts.1",
-    "node-fetch": "^3.2.6",
+    "node-fetch": "^3.3.2",
     "openai": "^4.83.0",
     "prompt-sync": "^4.2.0",
     "tough-cookie": "^4.1.3"
