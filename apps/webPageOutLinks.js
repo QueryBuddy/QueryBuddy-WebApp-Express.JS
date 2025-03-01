@@ -1,30 +1,30 @@
-import fs from 'fs';
-import request from 'request';
+import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 
-function getContent(req, res) {
-  var url = req.query.q
+async function getContent(req, res) {
+  var url = req.query.url
 
-  request(
-    { url: url }, 
-    function(error, result, body) {
-      if (!body) {
-        body = 'ERROR'
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
-
-      var bDom = new jsdom.JSDOM(body);
-
-      var matches = []
-
-      bDom.window.document.querySelectorAll('a[href]').forEach(function(a, i) {
-        var href = a.href
-        var text = a.textContent
-        matches.push({link: href, text: text})
-      })
-
-      res.json(matches)
-    }
-  );
+    });
+    const body = await response.text();
+    
+    var dom = new jsdom.JSDOM(body);
+    var links = dom.window.document.querySelectorAll('a');
+    var outLinks = [];
+    
+    links.forEach(function(link) {
+      if (link.href) outLinks.push(link.href);
+    });
+    
+    res.json(outLinks);
+  } catch (error) {
+    console.error('Error fetching page links:', error);
+    res.status(500).json({ error: 'Failed to fetch page links' });
+  }
 }
 
 export default getContent
