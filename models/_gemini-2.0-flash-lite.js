@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getThreadMessages, addMessageToThread, VALID_ROLES } from '../threads/messages.js';
 import {
@@ -21,8 +22,8 @@ var modelConfig = {
 modelConfig.api_key = process.env[`${modelConfig.provider.toUpperCase()}_API_KEY`]
 
 
-const genAI = new GoogleGenerativeAI(modelConfig.api_key);
 
+const genAI = new GoogleGenerativeAI(modelConfig.api_key);
 
 function handleFiles(messageObj, urls) {
     if (urls) {
@@ -60,7 +61,7 @@ async function newMessage(threadId, prompt, model, type, urls, useSystem=true, s
         previousMessages.push({role: msg.role, parts: [{text: msg.content}]})
     })
     
-    const chat = genAI.getGenerativeModel({ model: modelConfig.model }).startChat({ history: previousMessages });
+    const chat = genAI.getGenerativeModel({ model: modelConfig.model, systemInstruction: JSON.stringify(previousMessages) }).startChat({ history: previousMessages });
     
     // Add all previous messages
     
