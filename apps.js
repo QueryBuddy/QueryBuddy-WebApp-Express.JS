@@ -1,9 +1,3 @@
-var appsList = [
-  'weather', 
-  'webPageContent', 
-  'openLink'
-]
-
 var appsData = {
   weather: async function(params) {
     var zip = params[0]
