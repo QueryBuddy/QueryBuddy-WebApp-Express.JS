@@ -85,7 +85,7 @@ app.get('/viewImage', function(req, res) {
 app = hostThreadEndpoints(app)
 
 app.get('/chat', function(req, res) {
-  var defaultModel = 'gemini-2.0-flash-lite'
+  var defaultModel = 'gpt-4o-mini'
   var fileContent = fs.readFileSync('chat.html', 'utf8')
 
   var models = config.models
@@ -94,9 +94,10 @@ app.get('/chat', function(req, res) {
 
   if (Object.keys(models).length > 0) {
     Object.keys(models).forEach(key => {
+      if (key.startsWith('_')) return
       var model = models[key]
       if (key === defaultModel) mStr += `<option value="${key}" selected="selected">${key} (${model.provider.name})</option>`
-      else if (!key.startsWith('_')) mStr += `<option value="${key}">${key} (${model.provider.name})</option>`
+      else if (model) mStr += `<option value="${key}">${key} (${model.provider.name})</option>`
     })
     mStr = `<select title="Select Model" id="model">${mStr}</select>`
     fileContent = fileContent.replaceAll(/<selectModels>.*<\/selectModels>/g, mStr)
