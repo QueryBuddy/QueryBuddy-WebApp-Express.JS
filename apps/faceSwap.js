@@ -2,8 +2,7 @@ import { URLSearchParams } from 'url';
 import fetch from 'node-fetch';
 const encodedParams = new URLSearchParams();
 
-function getContent(target_url, swap_url) {
-
+export default function({ target_url, swap_url }) {
   encodedParams.set('target_url', target_url);
   encodedParams.set('swap_url', swap_url);
 
@@ -37,7 +36,4 @@ function getContent(target_url, swap_url) {
         .catch(err => console.error('error:' + err));
     })
     .catch(err => console.error('error:' + err));
-
 }
-
-export default getContent

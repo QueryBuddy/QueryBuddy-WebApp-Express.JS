@@ -56,4 +56,15 @@ async function getContent(url, scope2) {
   }
 }
 
-export default getContent
+export default async function({ links }) {
+    try {
+        const results = await Promise.all(links.map(async url => {
+            const response = await fetch(url)
+            const text = await response.text()
+            return text
+        }))
+        return results.join('\n\n')
+    } catch (error) {
+        return `Error fetching content: ${error.message}`
+    }
+}

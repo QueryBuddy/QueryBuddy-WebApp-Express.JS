@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 
-async function getContent(url) {
+export default async function(url) {
 
   try {
     const response = await fetch(url, {
@@ -25,5 +25,3 @@ async function getContent(url) {
     return 'ERROR: Failed to fetch page links'
   }
 }
-
-export default getContent

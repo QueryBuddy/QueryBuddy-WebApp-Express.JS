@@ -1,30 +1,23 @@
 import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 
-async function getContent(q) {
-  var url = `https://en.wikipedia.org/wiki/${q}`
+export default async function({ title }) {
+  const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=${encodeURIComponent(title)}&exintro=1`
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
-    const body = await response.text();
+    const response = await fetch(url)
+    const data = await response.json()
     
-    var dom = new jsdom.JSDOM(body);
-    var content = dom.window.document.querySelector('#mw-content-text');
-    var paragraphs = content.querySelectorAll('p');
-    var text = '';
+    const pages = data.query.pages
+    const pageId = Object.keys(pages)[0]
     
-    paragraphs.forEach(function(p) {
-      text += p.textContent + '\n';
-    });
-    
-    return text;
+    if (pageId === '-1') {
+      return 'Article not found'
+    }
+
+    const extract = pages[pageId].extract
+    return extract.replace(/<\/?[^>]+(>|$)/g, "") // Remove HTML tags
   } catch (error) {
-    console.error('Error fetching Wikipedia article:', error);
-    return 'ERROR: Failed to fetch Wikipedia article';
+    return `Error fetching Wikipedia article: ${error.message}`
   }
 }
-export default getContent

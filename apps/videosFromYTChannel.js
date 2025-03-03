@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-export default async function(channelId) {
+export default async function({ channelId }) {
     const apiKey = process.env.YOUTUBE_API_KEY;
     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&maxResults=50&order=date&type=video&key=${apiKey}`;
 

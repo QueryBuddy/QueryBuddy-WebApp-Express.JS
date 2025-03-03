@@ -5,7 +5,7 @@ var unitsObj = {
   F: 'Imperial', 
 }
 
-async function getForecast(req, res) {
+export default async function(req, res) {
   var apiKey = process.env['OPENWEATHER_API_KEY'];
   
   var zipcode = req.query.zip
@@ -194,5 +194,3 @@ async function responseReceivedHandler(req, res, err, response, body) {
 
   res.send(result)
 }
-
-export default getForecast

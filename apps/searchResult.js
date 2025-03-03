@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
 
-async function getContent(q, searchType) {
+export default async function({ query, searchType }) {
   var params = []
   var urlPathname = 'url'
   var prop = 'href'
@@ -16,8 +16,8 @@ async function getContent(q, searchType) {
   }
 
   params = `&${params.join('&')}`
-  var url = `https://www.googleapis.com/customsearch/v1?key=${process.env.SEARCH_API_KEY}&cx=750a504f8a13f45f4&q=${q}${params}`
-
+  var url = `https://www.googleapis.com/customsearch/v1?key=${process.env.SEARCH_API_KEY}&cx=750a504f8a13f45f4&q=${query}${params}`
+  
   try {
     const response = await fetch(url);
     var body = await response.text();
@@ -35,5 +35,3 @@ async function getContent(q, searchType) {
     return 'ERROR: Failed to fetch search results'
   }
 }
-
-export default getContent
