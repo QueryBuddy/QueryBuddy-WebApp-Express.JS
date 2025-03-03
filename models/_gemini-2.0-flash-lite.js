@@ -1,13 +1,9 @@
-import fs from 'fs'
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getThreadMessages, addMessageToThread, VALID_ROLES } from '../threads/messages.js';
-import {
-    FileState,
-    GoogleAICacheManager,
-    GoogleAIFileManager,
-} from '@google/generative-ai/server';
+import OpenAI from 'openai';
 
 import config from '../config.js'
+import appsConfig from '../appsConfig.js'
+
+import { callFunction } from '../callFunction.js'
 
 const FileObj = (...types) => ({ type: 'file', types });
 
@@ -15,98 +11,115 @@ var systemPrompt = config.systemPrompt
 
 var modelConfig = {
     provider: 'Google',
-    model: 'gemini-2.0-flash-lite',
-    types: ['text'/*, FileObj('image', 'audio')*/],
+    types: ['text', FileObj('image', 'audio')],
     modelPrompt: 'YOU ARE NOT UNDER DEVELOPMENT. THER USER\'S NAME IS NOT JOHN.',
 }
 modelConfig.api_key = process.env[`${modelConfig.provider.toUpperCase()}_API_KEY`]
 
+const openai = new OpenAI({
+    api_key: modelConfig.api_key,
+    base_url: "https://generativelanguage.googleapis.com/v1beta/openai/"
+});
 
-
-const genAI = new GoogleGenerativeAI(modelConfig.api_key);
-
-function handleFiles(messageObj, urls) {
-    if (urls) {
-        urls.forEach(async url => {
-            console.log(url)
-
-            // const uploadResult = await fileManager.uploadFile(`${mediaPath}/a11.txt`, {
-            //     mimeType: "text/plain",
-            // });
-
-            // messageObj.push(
-            //     {
-            //         fileData: {
-            //             fileUri: uploadResult.file.uri,
-            //             mimeType: uploadResult.file.mimeType,
-            //         },
-            //     },
-            // )
-        })
-    }
-    return messageObj
-}
-
-async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
-    // Get previous messages from thread file
-    var oldMessages = getThreadMessages(threadId)
-
-    var previousMessages = []
-    previousMessages.forEach((msg, i) => {
-        if (msg.role == VALID_ROLES.ASSISTANT) {
-            msg.role = 'model'
+async function newMessage(messages, prompt, model, type, urls, useSystem=true, startingMessage) {
+    // Prepare current message with any attachments
+    var currentContent = [
+        {
+            "type": "text",
+            "text": prompt,
         }
-        msg.parts = [{text: msg.content}]
+    ]
 
-        previousMessages.push({role: msg.role, parts: [{text: msg.content}]})
+    urls.forEach(u => {
+        currentContent.push({
+            "type": "image_url",
+            "image_url": {
+                "url": u,
+                "detail": "high"
+            },
+        })
     })
-    
-    const chat = genAI.getGenerativeModel({ model: modelConfig.model, systemInstruction: JSON.stringify(previousMessages) }).startChat({ history: previousMessages });
-    
-    // Add all previous messages
-    
-    // Handle current message
-    var messageObj = prompt
-    messageObj = handleFiles(messageObj, urls)
-    
-    // Save user message
-    addMessageToThread(threadId, {
-        role: VALID_ROLES.USER,
-        content: prompt
+
+    // Add current message
+    messages.push({
+        role: "user",
+        content: currentContent
     })
-    
+
+    var tools = []
+    Object.keys(appsConfig.appsData).forEach(appName => {
+        tools.push({
+            type: 'function',
+            function: appsConfig.appsData[appName]
+        })
+    })
+
     try {
-        // Send current message and get response
-        let result = await chat.sendMessage(messageObj);
-        const response = result.response.text();
+        var completion = await openai.chat.completions.create({
+            messages: messages,
+            model: model,
+            tools,
+        });
+
+        var response = completion.choices[0].message.content
         
-        // Save assistant response
-        addMessageToThread(threadId, {
-            role: VALID_ROLES.ASSISTANT,
-            content: response
-        })
+        var message = completion.choices[0].message
+        var tool_calls = message.tool_calls
+        if (tool_calls) {
+            tool_calls.forEach(async toolCall => {
+                const name = toolCall.function.name;
+                const args = JSON.parse(toolCall.function.arguments);
+                
+                const result = await callFunction(name, args);
+                messages.push(message);
+                messages.push({
+                    role: "tool", 
+                    tool_call_id: toolCall.id,
+                    content: JSON.stringify(result)
+                });
+            });
+
+            completion = await newMessage(messages, response, model, type, urls, useSystem, startingMessage)
+            response = completion.content
+        }
         
-        return response
+        return {status: 'OK', content: response}
     } catch (error) {
+        console.log(error)
         const errorMsg = `Error: ${error.message}`
-        addMessageToThread(threadId, {
-            role: VALID_ROLES.ASSISTANT,
-            content: errorMsg
-        })
-        return errorMsg
+        return {status: 'error', content: errorMsg}
     }
 }
 
-async function newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
-    const chat = genAI.getGenerativeModel({ model: model }).startChat();
+async function newCompletion(messages, prompt, model, type, urls, useSystem=true, startingMessage) {
+    if (systemPrompt && useSystem) {
+        messages.push({"role": "system", "content": systemPrompt})
+    }
 
-    var messageObj = prompt
+    var cArr = [
+        {
+            "type": "text",
+            "text": prompt,
+        },
+    ]
 
-    messageObj = handleFiles(messageObj, urls)
+    urls.forEach(u => {
+        cArr.push({
+            "type": "image_url",
+            "image_url": {
+                "url": u,
+            },
+        })
+    })
 
-    let result = await chat.sendMessage(messageObj);
+    messages.push({"role": "user", "content": cArr})
 
-    return result.response.text()
+    const completion = await openai.chat.completions.create({
+        messages: messages,
+        model: model,
+    });
+
+    return completion.choices[0].message.content
 }
 
 export default { config: modelConfig, message: newMessage, completion: newCompletion }

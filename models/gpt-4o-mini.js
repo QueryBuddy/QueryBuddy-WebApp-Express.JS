@@ -1,8 +1,10 @@
 import OpenAI from 'openai';
-import { getThreadMessages, addMessageToThread, VALID_ROLES } from '../threads/messages.js';
 const openai = new OpenAI();
 
 import config from '../config.js'
+import appsConfig from '../appsConfig.js'
+
+import { callFunction } from '../callFunction.js'
 
 const FileObj = (...types) => ({ type: 'file', types });
 
@@ -13,41 +15,7 @@ var modelConfig = {
     types: ['text', FileObj('image', 'audio')],
 }
 
-async function completedActions(run) {
-    const messages = await openai.beta.threads.messages.list(
-        run.thread_id
-    );
-
-    var output = messages.data.reverse()
-
-    output = output.pop().content
-
-    var text = []
-    
-    output.forEach(o => {
-        if (o.type === 'text') text.push(o.text.value)
-    })
-
-    text = text.join('\n\n---------------------------------------------------------------\n\n')
-
-    return text
-}
-
-async function newMessage(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
-    // Get previous messages from thread file
-    const previousMessages = getThreadMessages(threadId)
-    
-    // Prepare messages array for completion
-    const messages = []
-    
-    // Add previous messages
-    previousMessages.forEach(msg => {
-        messages.push({
-            role: msg.role,
-            content: msg.content
-        })
-    })
-    
+async function newMessage(messages, prompt, model, type, urls, useSystem=true, startingMessage) {
     // Prepare current message with any attachments
     var currentContent = [
         {
@@ -72,39 +40,52 @@ async function newMessage(threadId, prompt, model, type, urls, useSystem=true, s
         content: currentContent
     })
 
-    // Save user message to thread file
-    addMessageToThread(threadId, {
-        role: VALID_ROLES.USER,
-        content: prompt
+    var tools = []
+    Object.keys(appsConfig.appsData).forEach(appName => {
+        tools.push({
+            type: 'function',
+            function: appsConfig.appsData[appName]
+        })
     })
 
     try {
-        const completion = await openai.chat.completions.create({
+        var completion = await openai.chat.completions.create({
             messages: messages,
-            model: model || 'gpt-4',
+            model: model,
+            tools,
         });
 
-        const response = completion.choices[0].message.content
-        
-        // Save assistant response to thread file
-        addMessageToThread(threadId, {
-            role: VALID_ROLES.ASSISTANT,
-            content: response
-        })
+        var response = completion.choices[0].message.content
 
-        return response
+        var message = completion.choices[0].message
+        var tool_calls = message.tool_calls
+        if (tool_calls) {
+            tool_calls.forEach(async toolCall => {
+                const name = toolCall.function.name;
+                const args = JSON.parse(toolCall.function.arguments);
+                
+                const result = await callFunction(name, args);
+                messages.push(message);
+                messages.push({
+                    role: "tool", 
+                    tool_call_id: toolCall.id,
+                    content: JSON.stringify(result)
+                });
+            });
+
+            completion = await newMessage(messages, response, model, type, urls, useSystem, startingMessage)
+            response = completion.content
+        }
+    
+        return {status: 'OK', content: response}
     } catch (error) {
+        console.log(error)
         const errorMsg = `Error: ${error.message}`
-        addMessageToThread(threadId, {
-            role: VALID_ROLES.ASSISTANT,
-            content: errorMsg
-        })
-        return errorMsg
+        return {status: 'error', content: errorMsg}
     }
 }
 
-async function newCompletion(threadId, prompt, model, type, urls, useSystem=true, startingMessage) {
-    var messages = []
+async function newCompletion(messages, prompt, model, type, urls, useSystem=true, startingMessage) {
     if (systemPrompt && useSystem) {
         messages.push({"role": "system", "content": systemPrompt})
     }
