@@ -9,6 +9,7 @@ import OpenAI from 'openai';
 const openai = new OpenAI();
 
 import config from './config.js'
+import { getThreadMessages, addMessageToThread, VALID_ROLES } from './threads/messages.js';
 
 var models = config.models
 
@@ -16,7 +17,8 @@ var checkPrompt = config.checkPrompt;
 var errorCheck = config.errorCheck;
 
 var defaultId = config.defaultSystemId;
-var appsList = config.appsList;
+import apps from './appsConfig.js';
+var appsData = apps.appsData
 
 function isJSON(text) {
   let isValid = false;
@@ -72,25 +74,67 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
 
   var output
   if (startingMessage) {
-    output = await (await modelObj.actions).completion(threadId, prompt, model, type, urls, true, startingMessage)
+    output = await (await modelObj.actions).completion([], prompt, model, type, urls, true, startingMessage)
     res.send({status: 'OK', content: output})
     return
   }
   
-  output = await (await modelObj.actions).message(threadId, prompt, model, type, urls, true, startingMessage)
-  var appCheck = output
-  while (appCheck.startsWith('\n')) appCheck = appCheck.slice(1)
-  while (appCheck.endsWith('\n')) appCheck = appCheck.slice(0, -1)
-  if (appCheck.startsWith('```json')) appCheck = appCheck.slice(7)
-  if (appCheck.endsWith('```')) appCheck = appCheck.slice(0, -3)
-  while (appCheck.startsWith('\n')) appCheck = appCheck.slice(1)
-  while (appCheck.endsWith('\n')) appCheck = appCheck.slice(0, -1)
+  // Save user message to thread file
+  addMessageToThread(threadId, {
+    role: VALID_ROLES.USER,
+    content: prompt
+  })
 
-  var currentApp
-  if (isJSON(appCheck) && !!appsList) {
-    appCheck = JSON.parse(appCheck)
-    if (appCheck.isApp) currentApp = appCheck
+  // Get previous messages from thread file
+  const previousMessages = getThreadMessages(threadId)
+    
+  // Prepare messages array for completion
+  const messages = []
+  
+  // Add previous messages
+  previousMessages.forEach(msg => {
+    messages.push({
+      role: msg.role,
+      content: msg.content
+    })
+  })
+    
+  output = await (await modelObj.actions).message(previousMessages, prompt, model, type, urls, true, startingMessage)
+
+  var currentApp = output.content
+  while (currentApp.startsWith('\n')) currentApp = currentApp.slice(1)
+  while (currentApp.endsWith('\n')) currentApp = currentApp.slice(0, -1)
+  if (currentApp.startsWith('```json')) currentApp = currentApp.slice(7)
+  if (currentApp.endsWith('```')) currentApp = currentApp.slice(0, -3)
+  while (currentApp.startsWith('\n')) currentApp = currentApp.slice(1)
+  while (currentApp.endsWith('\n')) currentApp = currentApp.slice(0, -1)
+
+  if (isJSON(currentApp) && !!appsData) {
+    currentApp = JSON.parse(currentApp)
+
+    if (currentApp.isApp) {
+      var app = appsData[currentApp.appName]
+
+      if (app) {
+        if (!app.clientSide) {
+          var func = await import(`./apps/${currentApp.appName}.js`)
+          var result = func.default(...currentApp.args)
+
+          output = await textRequest(res, threadId, result, model, type, urls, systemId, startingMessage)
+          
+        }
+        else output.status = 'appOK'
+      }
+    }
   }
+
+  // Save assistant response to thread file
+  addMessageToThread(threadId, {
+    role: VALID_ROLES.ASSISTANT,
+    content: output.content
+  })
+
+
 
   // if (checkPrompt.includes('{userPrompt}')) {
   //   if (prompt.includes(systemId)) {
@@ -104,25 +148,20 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
   //   checkPrompt = checkPrompt.replace('{aiResponse}', output)
   // }
 
-  if (currentApp) {
-    res.send({status: 'appOK', content: currentApp})
-  }
-  else {
-  //   var cOutput = await (await modelObj.actions).completion(threadId, checkPrompt, model, type, urls, false, startingMessage)
-  //   if (cOutput === 'good') {
-  //     res.send({status: 'OK', content: output})
+  // var cOutput = await (await modelObj.actions).completion(previousMessages, checkPrompt, model, type, urls, false, startingMessage)
+  // if (cOutput === 'good') {
+  //   res.send({status: 'OK', content: output})
+  // }
+  // else if (cOutput === 'not good') {
+  //   if (errorCheck.includes('{errorMessage}')) {
+  //     errorCheck = errorCheck.replace('{errorMessage}', output)
   //   }
-  //   else if (cOutput === 'not good') {
-  //     if (errorCheck.includes('{errorMessage}')) {
-  //       errorCheck = errorCheck.replace('{errorMessage}', output)
-  //     }
-  //     output = await (await modelObj.actions).completion(threadId, errorCheck, model, type, urls, false, startingMessage)
-  //     res.send({status: 'Error', content: output})
-  //   }
-  //   else {
-      res.send({status: 'OK', content: output})
-  //   }
-  }
+  //   output = await (await modelObj.actions).completion(previousMessages, errorCheck, model, type, urls, false, startingMessage)
+  //   res.send({status: 'Error', content: output})
+  // }
+  // else {
+      res.send({status: output.status, content: output.content})
+  // }
 }
 
 async function imageRequest(headers, res, threadId, prompt, model, startingMessage) {
