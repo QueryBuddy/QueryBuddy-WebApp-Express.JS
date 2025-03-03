@@ -20,27 +20,15 @@ async function createThread(req, res) {
     const messages = []
     
     // Add system message if needed
-    if (config.systemPrompt) {
-        messages.push({
-            role: 'user',
-            content: 'FirstMessage',
-            timestamp: new Date().toISOString()
-        })
+    if (config.systemPromptNoApps) {
         messages.push({
             role: 'system',
-            content: config.systemPrompt,
+            content: config.systemPromptNoApps,
             timestamp: new Date().toISOString()
         })
     }
     
     if (config.firstMessage) {
-        if (!config.systemPrompt) {
-            messages.push({
-                role: 'user',
-                content: 'FirstMessage',
-                timestamp: new Date().toISOString()
-            })
-        }
         messages.push({
             role: 'system',
             content: config.firstMessage,
