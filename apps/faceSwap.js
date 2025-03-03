@@ -2,9 +2,7 @@ import { URLSearchParams } from 'url';
 import fetch from 'node-fetch';
 const encodedParams = new URLSearchParams();
 
-function getContent(req, res) {
-  var target_url = req.query.target_url
-  var swap_url = req.query.swap_url
+function getContent(target_url, swap_url) {
 
   encodedParams.set('target_url', target_url);
   encodedParams.set('swap_url', swap_url);
@@ -34,7 +32,7 @@ function getContent(req, res) {
         .then(json => {
           json.image_process_response.result.embedding = ''
           json.image_process_response.result.keypoints = ''
-res.json(json.image_process_response)
+          return json.image_process_response
         })
         .catch(err => console.error('error:' + err));
     })
