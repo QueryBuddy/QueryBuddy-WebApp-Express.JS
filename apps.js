@@ -21,44 +21,6 @@ var appsData = {
       newMessage('app', 'Unable to get country.', {appName: 'weather'})
     }
   },
-  searchResult: async function(params) {
-    var queries = params[0]
-    if (typeof queries !== 'object') queries = [queries]
-
-    queries.forEach(async function(query, i) {
-      var response = await fetch(`/getSearchResult?q=${query}`)
-      if (!response.ok) {
-        newMessage('app', 'Unable to get search result.', {appName: 'searchResult'})
-        return
-      }
-      var results = await response.json()
-
-      // newMessage('app', res, {isApp: true, appName: 'searchResult'})
-      newRequest('text', JSON.stringify(results))
-    })
-  },
-  webPageContent: async function(params) {
-    var links = params[0]
-    if (typeof links !== 'object') links = [links]
-
-    links.forEach(async function(link, i) {
-      var response = await fetch(`/getWebpageContent?url=${link}`)
-      if (!response.ok) {
-        newMessage('app', 'Unable to get webpage content.', {appName: 'webPageContent'})
-        return
-      }
-      var html = await response.text()
-
-      var turndownService = new TurndownService()
-      var md = turndownService.turndown(html)
-
-      var res = marked.parse(md)
-
-      res = res.replaceAll('&lt;', '<').replaceAll('&gt;', '>')
-
-      newMessage('app', res, {isApp: true, appName: 'webPageContent', modelContent: md})
-    })
-  },
   openLink: async function(params) {
     var links = params[0]
     links = JSON.parse(links)
