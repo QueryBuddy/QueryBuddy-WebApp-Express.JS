@@ -1,16 +1,29 @@
-import request from 'request';
+import fetch from 'node-fetch';
 
-function getForecast(req, res) {
-  var id = req.query.id
-  let channelURL = encodeURIComponent(`https://www.youtube.com/feeds/videos.xml?channel_id=${id}`)
-  
-  request.post(
-    { url: `https://api.rss2json.com/v1/api.json?rss_url=${channelURL}` }, 
-    function(err, response, body) {
-      body = JSON.parse(body)
-      res.json(body)
+export default async function(channelId) {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&maxResults=50&order=date&type=video&key=${apiKey}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (!data.items) {
+            return 'No videos found for channel';
+        }
+
+        const videos = data.items.map(item => {
+            const { title, description, thumbnails } = item.snippet;
+            return {
+                title,
+                description,
+                thumbnail: thumbnails.default.url,
+                videoId: item.id.videoId
+            };
+        });
+
+        return JSON.stringify(videos, null, 2);
+    } catch (error) {
+        return `Error fetching channel videos: ${error.message}`;
     }
-  )
 }
-
-export default getForecast

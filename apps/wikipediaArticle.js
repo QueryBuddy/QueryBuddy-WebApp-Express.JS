@@ -1,8 +1,7 @@
 import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 
-async function getContent(req, res) {
-  var q = req.query.q || 'Wikipedia'
+async function getContent(q) {
   var url = `https://en.wikipedia.org/wiki/${q}`
 
   try {
@@ -22,11 +21,10 @@ async function getContent(req, res) {
       text += p.textContent + '\n';
     });
     
-    res.send(text);
+    return text;
   } catch (error) {
     console.error('Error fetching Wikipedia article:', error);
-    res.status(500).send('Failed to fetch Wikipedia article');
+    return 'ERROR: Failed to fetch Wikipedia article';
   }
 }
-
 export default getContent

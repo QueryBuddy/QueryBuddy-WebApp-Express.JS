@@ -1,8 +1,7 @@
 import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 
-async function getContent(req, res) {
-  var url = req.query.url
+async function getContent(url) {
 
   try {
     const response = await fetch(url, {
@@ -20,10 +19,10 @@ async function getContent(req, res) {
       if (link.href) outLinks.push(link.href);
     });
     
-    res.json(outLinks);
+    return outLinks;
   } catch (error) {
     console.error('Error fetching page links:', error);
-    res.status(500).json({ error: 'Failed to fetch page links' });
+    return 'ERROR: Failed to fetch page links'
   }
 }
 

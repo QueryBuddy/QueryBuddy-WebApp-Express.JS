@@ -1,17 +1,11 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
 
-async function getContent(req, res) {
+async function getContent(q, searchType) {
   var params = []
   var urlPathname = 'url'
   var prop = 'href'
   var qKey = 'q'
-
-  var q = 'How do you work?'
-  if (req.query.q) {
-    q = req.query.q
-  }
-  var searchType = req.query.type
 
   switch (searchType) {
     case 'image': 
@@ -36,9 +30,9 @@ async function getContent(req, res) {
 
     var items = body.items
 
-    res.json(items);
+    return items
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch search results' });
+    return 'ERROR: Failed to fetch search results'
   }
 }
 

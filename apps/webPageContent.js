@@ -1,13 +1,9 @@
 import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 
-async function getContent(req, res) {
-  var url = req.query.url
-  var scope2 = req.query.scope2 || 'body'
-  
+async function getContent(url, scope2) {
   if (!url) {
-    res.send('ERROR: Unable to get contents of the requested page. Please check the URL and try again.')
-    return
+    return 'ERROR: Unable to get contents of the requested page. Please check the URL and try again.'
   }
 
   if (url.includes('*')) url = url.replace('*', '')
@@ -53,10 +49,10 @@ async function getContent(req, res) {
         body = 'ERROR'
       }
 
-      res.send(`<pre>${body}</pre>`)
+      return body
     }
   } catch (error) {
-    res.send('ERROR: Unable to get contents of the requested page. Please check the URL and try again.')
+    return 'ERROR: Unable to get contents of the requested page. Please check the URL and try again.'
   }
 }
 
