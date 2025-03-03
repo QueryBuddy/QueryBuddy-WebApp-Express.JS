@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
-import states from './states.json';
+import states from '../states.json';
 
-async function getForecast(req, res) {
+export default async function(req, res) {
   var apiKey = process.env['ZIPCODE_API_KEY'];
   
   var city = req.query.city
@@ -17,5 +17,3 @@ async function getForecast(req, res) {
     res.status(500).json({ error: 'Failed to fetch zipcode data' });
   }
 }
-
-export default getForecast
