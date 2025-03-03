@@ -98,6 +98,11 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
       content: msg.content
     })
   })
+
+  if (!modelObj) {
+    res.send({status: 'Error', content: 'Model not found'})
+    return
+  }
     
   output = await (await modelObj.actions).message(previousMessages, prompt, model, type, urls, true, startingMessage)
 
