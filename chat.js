@@ -270,6 +270,7 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
     role = output.status.toLowerCase()
     if (role === 'ok') role = 'ai'
     else if (role === 'appok') {
+      alert(output.args)
       messageType = 'box'
       moreParams = {variation: 'appInfo', isApp: true}
     }
