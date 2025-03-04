@@ -10,6 +10,15 @@ body {
     flex-direction: column;
 }
 
+.container {
+    flex: 1;
+    display: flex;
+}
+
+.html-preview:not([srcdoc]) {
+    display: none;
+}
+
 .messages {
     flex: 1;
     display: flex;

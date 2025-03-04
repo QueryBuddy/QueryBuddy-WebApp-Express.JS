@@ -60,6 +60,12 @@ var appsData = {
 
     dialog.showModal()
   },
+  showHTML: async function(params) {
+    var html = params[0]
+    var preview = document.querySelector('.html-preview')
+
+    preview.srcdoc = html
+  },
   sendLiveImage: async function(params) {
     var dialog = document.querySelector('.live-photo')
     dialog.close()

@@ -24,6 +24,23 @@ const appsData = {
       }
     }
   },
+  showHTML: {
+    clientSide: true,
+    name: "showHTML",
+    description: {
+      info: 'shows a html page',
+    },
+    parameters: {
+      type: "object",
+      required: ["html"],
+      properties: {
+        html: {
+          type: "string",
+          description: 'a string of html'
+        }
+      }
+    }
+  },
   webPageContent: {
     clientSide: false,
     name: "webPageContent",
