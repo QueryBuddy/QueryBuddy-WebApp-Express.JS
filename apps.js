@@ -1,28 +1,39 @@
-var appsData = {
-  weather: async function(params) {
-    var zip = params[0]
+var firstGeolocation = true
 
-    var cResponse = await fetch('/getCountry')
-    if (cResponse.ok) {
-      var country = await response.text()
-      var unit = 'C'
-      if (country === 'United States of America') unit = 'F'
-  
-      var response = await fetch(`/getWeather?zip=${zip}&unit=${unit}`)
-      if (response.ok) {
-        var weather = await response.text()
-        newMessage('app', weather, {isApp: true, appName: 'weather'})
-      }
-      else {
-        newMessage('app', 'Unable to get weather.', {appName: 'weather'})
-      }
+var appsData = {
+  weather: async function(zip) {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+
+        goWeather(latitude, longitude)
+      });
     }
     else {
-      newMessage('app', 'Unable to get country.', {appName: 'weather'})
+      if (firstGeolocation) {
+        newMessage('box', "I'm going to need to know your location to get the weather so i hope you've enabled it.", {variation: 'alert'})
+        firstGeolocation = false
+      }
+      if (!navigator.geolocation) {
+        newMessage('error', 'Geolocation is not supported by this browser.')
+      }
+      return
+    }
+
+    async function goWeather(latitude, longitude) {
+      var response = await fetch(`/getWeather?lat=${latitude}&lon=${longitude}&zip=${zip}&unit=${unit}`)
+      if (response.ok) {
+        var weather = await response.json()
+        newRequest('text', JSON.stringify(weather))
+        // newMessage('app', weather, {isApp: true, appName: 'weather'})
+      }
+      else {
+        newMessage('box', 'Unable to get weather.', {variation: 'alert'})
+      }
     }
   },
-  openLink: async function(params) {
-    var links = params[0]
+  openLink: async function(links) {
     links = JSON.parse(links)
 
     links.forEach(async function(link, i) {
@@ -30,11 +41,10 @@ var appsData = {
       newMessage('app', `Opened "${link}".`, {appName: 'openLink'})
     })
   },
-  createImage: async function(params) {
-    var prompt = params[0]
+  createImage: async function(prompt) {
     newRequest('create-image', prompt)
   }, 
-  transcribeAudio: async function(params) {
+  transcribeAudio: async function(_) {
     if (!fnames) {
       var params = new URLSearchParams(window.location.search)
       var names = params.get('name')
@@ -48,10 +58,10 @@ var appsData = {
       newRequest('transcribe-audio', n)
     })
   },
-  liveImage: async function(params) {
+  liveImage: async function(_) {
     this.takeLiveImage()
   },
-  takeLiveImage: async function(params) {
+  takeLiveImage: async function(_) {
     var dialog = document.querySelector('.live-photo')
 
     var iframe = dialog.querySelector('iframe')
@@ -60,13 +70,12 @@ var appsData = {
 
     dialog.showModal()
   },
-  showHTML: async function(params) {
-    var html = params[0]
+  showHTML: async function(html) {
     var preview = document.querySelector('.html-preview')
 
     preview.srcdoc = html
   },
-  sendLiveImage: async function(params) {
+  sendLiveImage: async function(json) {
     var dialog = document.querySelector('.live-photo')
     dialog.close()
 
@@ -75,8 +84,6 @@ var appsData = {
     iframe.src = ''
 
 
-    var json = params[0]
-    var lastMessage = document.querySelectorAll('.messages > .message.user')
     lastMessage = lastMessage[lastMessage.length-1]
     var lastTextSpan = lastMessage.querySelector('.text__span')
     var lastMessageContent = lastTextSpan.innerHTML

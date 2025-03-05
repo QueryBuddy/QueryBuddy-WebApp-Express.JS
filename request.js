@@ -72,10 +72,9 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
 
   if (!!systemId === false) systemId = defaultId
 
-  var output
   if (startingMessage) {
-    output = await (await modelObj.actions).completion([], prompt, model, type, urls, true, startingMessage)
-    res.send({status: 'OK', content: output})
+    var sOutput = await (await modelObj.actions).completion([], prompt, model, type, urls, true, startingMessage)
+    res.send({status: 'OK', content: sOutput})
     return
   }
   
@@ -104,42 +103,16 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
     return
   }
     
-  output = await (await modelObj.actions).message(previousMessages, prompt, model, type, urls, true, startingMessage)
+  var output = await (await modelObj.actions).message(previousMessages, prompt, model, type, urls, true, startingMessage)
 
-  var currentApp = output.content
-  while (currentApp.startsWith('\n')) currentApp = currentApp.slice(1)
-  while (currentApp.endsWith('\n')) currentApp = currentApp.slice(0, -1)
-  if (currentApp.startsWith('```json')) currentApp = currentApp.slice(7)
-  if (currentApp.endsWith('```')) currentApp = currentApp.slice(0, -3)
-  while (currentApp.startsWith('\n')) currentApp = currentApp.slice(1)
-  while (currentApp.endsWith('\n')) currentApp = currentApp.slice(0, -1)
-
-  if (isJSON(currentApp) && !!appsData) {
-    currentApp = JSON.parse(currentApp)
-
-    if (currentApp.isApp) {
-      var app = appsData[currentApp.appName]
-
-      if (app) {
-        if (!app.clientSide) {
-          var func = await import(`./apps/${currentApp.appName}.js`)
-          var result = func.default(...currentApp.args)
-
-          output = await textRequest(res, threadId, result, model, type, urls, systemId, startingMessage)
-          
-        }
-        else output.status = 'appOK'
-      }
-    }
-  }
-
+  if (output.isApp) output.status = 'appOK'
+  else {
   // Save assistant response to thread file
-  addMessageToThread(threadId, {
-    role: VALID_ROLES.ASSISTANT,
-    content: output.content
-  })
-
-
+    addMessageToThread(threadId, {
+      role: VALID_ROLES.ASSISTANT,
+      content: output.content
+    })
+  }
 
   // if (checkPrompt.includes('{userPrompt}')) {
   //   if (prompt.includes(systemId)) {
@@ -165,7 +138,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
   //   res.send({status: 'Error', content: output})
   // }
   // else {
-      res.send({status: output.status, content: output.content})
+      res.send(output)
   // }
 }
 

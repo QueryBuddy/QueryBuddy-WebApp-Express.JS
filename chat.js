@@ -1,4 +1,3 @@
-var appsList = !!appsList ? appsList : false
 var keepValue = !!keepValue ? keepValue : false
 
 var type = 'text'
@@ -270,7 +269,6 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
     role = output.status.toLowerCase()
     if (role === 'ok') role = 'ai'
     else if (role === 'appok') {
-      alert(output.args)
       messageType = 'box'
       moreParams = {variation: 'appInfo', isApp: true}
     }
@@ -282,7 +280,11 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
         moreParams.maxMessages = true
       }
     }
-    output = output.content
+
+    if (output?.isApp) {
+      output = {name: output.name, args: output.args}
+    }
+    else output = output.content
   }
   
   switch (type) {
@@ -314,7 +316,7 @@ function newMessage(role, content, moreParams={}) {
       if (!!variation === false) variation = 'info'
       message.classList.add(variation)
 
-      if (moreParams?.isApp) {
+      if (moreParams?.isApp && typeof content === 'object') {
         checkIfApp(content, moreParams);
         return
       }
@@ -384,7 +386,6 @@ function newMessage(role, content, moreParams={}) {
         if (moreParams?.isApp) {
           var newContent = content
           if (moreParams?.modelContent) newContent = moreParams.modelContent
-          newRequest('text', newContent)
         }
     
         if (moreParams?.maxMessages && !moreParams?.isApp && !moreParams?.maxMessage) {
@@ -409,10 +410,10 @@ function newMessage(role, content, moreParams={}) {
 }
 
 function checkIfApp(app, moreParams) {
-  if (appsList) {
-    if (moreParams.isApp) {
-      appsData[app.appName](app.args)
-    }
+  if (moreParams?.isApp && typeof app === 'object' && appsData) {
+    var args = Object.values(app.args)
+
+    appsData[app.name](...args)
   }
 }
 
