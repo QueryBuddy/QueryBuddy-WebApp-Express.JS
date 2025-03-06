@@ -76,7 +76,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, startingMes
   }
     
   if (startingMessage) {
-    var sOutput = await (await modelObj.actions).completion([], prompt, model, type, urls, true, startingMessage)
+    var sOutput = await (await modelObj.actions).completion(prompt, model, type, urls, true, startingMessage)
     res.send({status: 'OK', content: sOutput})
     return
   }
@@ -90,17 +90,6 @@ async function textRequest(res, threadId, prompt, model, type, urls, startingMes
   // Get previous messages from thread file
   const previousMessages = getThreadMessages(threadId)
     
-  // Prepare messages array for completion
-  const messages = []
-  
-  // Add previous messages
-  previousMessages.forEach(msg => {
-    messages.push({
-      role: msg.role,
-      content: msg.content
-    })
-  })
-
   var output = await (await modelObj.actions).message(previousMessages, prompt, model, type, urls, true, startingMessage)
 
   if (output.isApp) output.status = 'appOK'

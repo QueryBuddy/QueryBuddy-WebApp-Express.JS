@@ -92,7 +92,8 @@ async function newMessage(messages, prompt, model, type, urls, useSystem=true, s
     }
 }
 
-async function newCompletion(messages, prompt, model, type, urls, useSystem=true, startingMessage) {
+async function newCompletion(prompt, model, type, urls, useSystem=true, startingMessage) {
+    var messages = []
     if (systemPrompt && useSystem) {
         messages.push({"role": "system", "content": systemPrompt})
     }
