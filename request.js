@@ -71,7 +71,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, startingMes
 
   if (!modelObj) {
     console.dir({model: model, modelObj: modelObj, message: 'Model not found'})
-    res.send({status: 'Error', content: 'Model not found'})
+    res.send({status: 'Error', content: `Model ${model} not found`})
     return
   }
     
