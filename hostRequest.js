@@ -8,11 +8,11 @@ function host(app) {
     var type = req.body.t
     var urls = req.body.urls
     var voice = req.body.v
-    var systemId = req.body.systemid
     var startingMessage = req.body.startingmessage
     newRequest(
-      res, model || '', thread || '', prompt, type, urls=urls, voice=voice,
-      systemId=systemId, startingMessage=startingMessage
+      res, model || '', thread || '', 
+      prompt, type, urls=urls, voice=voice, 
+      startingMessage=startingMessage
     )
   })
 

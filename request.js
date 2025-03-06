@@ -16,7 +16,6 @@ var models = config.models
 var checkPrompt = config.checkPrompt;
 var errorCheck = config.errorCheck;
 
-var defaultId = config.defaultSystemId;
 import apps from './appsConfig.js';
 var appsData = apps.appsData
 
@@ -36,7 +35,7 @@ function isJSON(text) {
   return isValid;
 }
 
-function newRequest(res, model, threadId, prompt, type, urls, voice, systemId, startingMessage) {
+function newRequest(res, model, threadId, prompt, type, urls, voice, startingMessage) {
   if (!urls) urls = []
 
   const headers = {
@@ -60,17 +59,15 @@ function newRequest(res, model, threadId, prompt, type, urls, voice, systemId, s
       break;
     default:
       if (!model) model = `gpt-${4}o`
-      textRequest(res, threadId, prompt, model, type, urls, systemId, startingMessage)
+      textRequest(res, threadId, prompt, model, type, urls, startingMessage)
       break;
   }
 }
 
-async function textRequest(res, threadId, prompt, model, type, urls, systemId, startingMessage) {
+async function textRequest(res, threadId, prompt, model, type, urls, startingMessage) {
   var modelObj = models[model]
 
   if (type === 'live-image-send') type = 'image'
-
-  if (!!systemId === false) systemId = defaultId
 
   if (startingMessage) {
     var sOutput = await (await modelObj.actions).completion([], prompt, model, type, urls, true, startingMessage)
@@ -115,11 +112,6 @@ async function textRequest(res, threadId, prompt, model, type, urls, systemId, s
   }
 
   // if (checkPrompt.includes('{userPrompt}')) {
-  //   if (prompt.includes(systemId)) {
-  //     prompt = prompt.split(systemId)
-  //     prompt.pop()
-  //     prompt = prompt.join(systemId)
-  //   }
   //   checkPrompt = checkPrompt.replace('{userPrompt}', prompt)
   // }
   // if (checkPrompt.includes('{aiResponse}')) {
