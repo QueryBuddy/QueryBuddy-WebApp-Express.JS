@@ -23,17 +23,17 @@ var corsOptions = {
 app.use(express.json())
 
 // User inputs
-app.get('/', function(req, res) {
+app.get('/', (req, res) => {
   res.redirect('/chat')
 })
 
 app = hostRequestEndpoint(app)
 
-appsList.forEach(function(aName, i) {
+appsList.forEach((aName, i) => {
   var hPath = `/get${aName[0].toUpperCase()}${aName.slice(1)}`
   var fPath = `./apps/${aName[0].toLowerCase()}${aName.slice(1)}.js`
-  app.get(hPath, cors(corsOptions), function(req, res) {
-    import(fPath).then(function(module) {
+  app.get(hPath, cors(corsOptions), (req, res) => {
+    import(fPath).then(module => {
       module.default(req, res)
     })
   })
@@ -41,7 +41,7 @@ appsList.forEach(function(aName, i) {
 
 app.post("/uploadFile", uploadFile)
 
-app.get('/temp/:name', function(req, res) {
+app.get('/temp/:name', (req, res) => {
   var name = req.params.name
   var file = '/temp.html'
   if (!!name) {
@@ -50,12 +50,12 @@ app.get('/temp/:name', function(req, res) {
   res.sendFile(file, {root: '.'})
 })
 
-app.get('/listImages', function(req, res) {
+app.get('/listImages', (req, res) => {
   var files = fs.readdirSync('temp')
   res.json(files)
 })
 
-app.get('/clearImages', function(req, res) {
+app.get('/clearImages', (req, res) => {
   const directory = `./temp`;
 
   fs.readdir(directory, (err, files) => {
@@ -70,7 +70,7 @@ app.get('/clearImages', function(req, res) {
   });
 })
 
-app.get('/viewImage', function(req, res) {
+app.get('/viewImage', (req, res) => {
   var url = req.query.u
   if (!!atob(url)) url = atob(url)
   var p = req.query.p
@@ -84,8 +84,7 @@ app.get('/viewImage', function(req, res) {
 
 app = hostThreadEndpoints(app)
 
-app.get('/chat', function(req, res) {
-  var defaultModel = 'gpt-4o-mini'
+app.get('/chat', (req, res) => {
   var fileContent = fs.readFileSync('chat.html', 'utf8')
 
   var models = config.models
@@ -96,7 +95,7 @@ app.get('/chat', function(req, res) {
     Object.keys(models).forEach(key => {
       if (key.startsWith('_')) return
       var model = models[key]
-      if (key === defaultModel) mStr += `<option value="${key}" selected="selected">${key} (${model.provider.name})</option>`
+      if (key === config.defaultModel) mStr += `<option value="${key}" selected="selected">${key} (${model.provider.name})</option>`
       else if (model) mStr += `<option value="${key}">${key} (${model.provider.name})</option>`
     })
     mStr = `<select title="Select Model" id="model">${mStr}</select>`
@@ -111,7 +110,7 @@ app.get('/chat', function(req, res) {
   res.send(fileContent)
 })
 
-app.get('*', function(req, res) {
+app.get('*', (req, res) => {
   var path = req.path
   if (path.startsWith('/')) path = path.slice(1)
   if (path.endsWith('/')) path = path.slice(0, -1)
@@ -123,6 +122,6 @@ app.get('*', function(req, res) {
 })
 
 var port = 3000
-app.listen(port, function() {
+app.listen(port, () => {
   console.log(`Server started at http://localhost:${port}`)
 })

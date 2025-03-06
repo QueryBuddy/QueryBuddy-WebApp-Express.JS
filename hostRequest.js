@@ -1,7 +1,7 @@
 import newRequest from './request.js'
 
 function host(app) {
-  app.post('/sendRequest', function(req, res) {
+  app.post('/sendRequest', (req, res) => {
     var model = req.body.model
     var thread = req.body.thread
     var prompt = req.body.p

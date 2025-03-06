@@ -8,7 +8,7 @@ var aName = 'QueryBuddy'
 
 var config = {
   aName: aName, 
-  assistantId: 'asst_xBu6I4lz0jH4KkGInmtkIuHZ',
+  defaultModel: 'gpt-4o-mini',
   firstMessage: 'Please first ask the user for their name, and address them as such.',
   systemId: '$[systemPrompt]', 
   checkPrompt: `Do you think that the AI has fulfilled the users request? If yes, then respond with "good" and if no, then respond with "not good", if you don't know respond with "not good".

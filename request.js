@@ -69,6 +69,12 @@ async function textRequest(res, threadId, prompt, model, type, urls, startingMes
 
   if (type === 'live-image-send') type = 'image'
 
+  if (!modelObj) {
+    console.dir({model: model, modelObj: modelObj, message: 'Model not found'})
+    res.send({status: 'Error', content: 'Model not found'})
+    return
+  }
+    
   if (startingMessage) {
     var sOutput = await (await modelObj.actions).completion([], prompt, model, type, urls, true, startingMessage)
     res.send({status: 'OK', content: sOutput})
@@ -95,11 +101,6 @@ async function textRequest(res, threadId, prompt, model, type, urls, startingMes
     })
   })
 
-  if (!modelObj) {
-    res.send({status: 'Error', content: 'Model not found'})
-    return
-  }
-    
   var output = await (await modelObj.actions).message(previousMessages, prompt, model, type, urls, true, startingMessage)
 
   if (output.isApp) output.status = 'appOK'
