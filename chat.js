@@ -269,6 +269,10 @@ async function newRequest(type, prompt, voice, filelocation, messageType, morePa
     role = output.status.toLowerCase()
     if (role === 'ok') role = 'ai'
     else if (role === 'appok') {
+<<<<<<< Updated upstream
+=======
+      console.log(output.args)
+>>>>>>> Stashed changes
       messageType = 'box'
       moreParams = {variation: 'appInfo', isApp: true}
     }

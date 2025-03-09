@@ -48,7 +48,11 @@ async function newMessage(messages, prompt, model, type, urls, useSystem=true, s
 
     var tools = []
     Object.keys(appsConfig.appsData).forEach(appName => {
+<<<<<<< Updated upstream
         if (!appsConfig.appsData[appName].hostOnly) {
+=======
+        if (!appsConfig.appsData[appName].clientSide) {
+>>>>>>> Stashed changes
             tools.push({
                 type: 'function',
                 function: appsConfig.appsData[appName]
