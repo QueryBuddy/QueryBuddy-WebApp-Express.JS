@@ -49,7 +49,6 @@ async function newMessage(messages, prompt, model, type, urls, useSystem=true, s
     var tools = []
     Object.keys(appsConfig.appsData).forEach(appName => {
         if (!appsConfig.appsData[appName].hostOnly) {
-        if (!appsConfig.appsData[appName].clientSide) {
             tools.push({
                 type: 'function',
                 function: appsConfig.appsData[appName]
