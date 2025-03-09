@@ -125,6 +125,10 @@ body {
         height: 100%;
     }
 
+    editor-squiggler {
+        display: none;
+    }
+
     .upload-button {
         --transition: opacity 0.5s ease-out;
 

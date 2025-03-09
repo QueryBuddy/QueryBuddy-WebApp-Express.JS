@@ -1,18 +1,18 @@
 var firstGeolocation = true
 
 var appsData = {
-  weather: async function(zip) {
+  weather: async function(latitude, longitude) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(position => {
-        var latitude = position.coords.latitude;
-        var longitude = position.coords.longitude;
+        if (!latitude) latitude = position.coords.latitude;
+        if (!longitude) longitude = position.coords.longitude;
 
         goWeather(latitude, longitude)
       });
     }
     else {
       if (firstGeolocation) {
-        newMessage('box', "I'm going to need to know your location to get the weather so i hope you've enabled it.", {variation: 'alert'})
+        newMessage('box', "I'm going to need to know your location to get the weather so I hope you've enabled it.", {variation: 'alert'})
         firstGeolocation = false
       }
       if (!navigator.geolocation) {
@@ -22,7 +22,7 @@ var appsData = {
     }
 
     async function goWeather(latitude, longitude) {
-      var response = await fetch(`/getWeather?lat=${latitude}&lon=${longitude}&zip=${zip}&unit=${unit}`)
+      var response = await fetch(`/getWeather?lat=${latitude}&lon=${longitude}`)
       if (response.ok) {
         var weather = await response.json()
         newRequest('text', JSON.stringify(weather))
@@ -34,9 +34,7 @@ var appsData = {
     }
   },
   openLink: async function(links) {
-    links = JSON.parse(links)
-
-    links.forEach(async function(link, i) {
+    links.forEach(async link => {
       open(link)
       newMessage('app', `Opened "${link}".`, {appName: 'openLink'})
     })

@@ -11,15 +11,19 @@ const appsData = {
     clientSide: true,
     name: "weather",
     description: {
-      info: 'gets the weather for any zipcode',
+      info: 'gets the weather for any latitude and longitude. If none is provided the app will use the uses\'s current location, so there is not need to ask the user for it explicitly.',
     },
     parameters: {
       type: "object",
-      required: ["place"],
+      // required: ["latitude", "longitude"],
       properties: {
-        place: {
-          type: "string",
-          description: 'a zipcode'
+        latitude: {
+          type: "number",
+          description: 'a latitude'
+        },
+        longitude: {
+          type: "number",
+          description: 'a longitude'
         }
       }
     }

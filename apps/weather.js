@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-var getCountry = require('./country.js')
+import getCountry from './country.js'
 
 var unitsObj = {
   C: 'Metric', 
@@ -10,17 +10,22 @@ var unitsObj = {
 export default async function(req, res) {
   var apiKey = process.env['OPENWEATHER_API_KEY'];
   
-  var zipcode = req.query.zip
-  if (zipcode.startsWith('"')) zipcode = zipcode.slice(1)
-  if (zipcode.endsWith('"')) zipcode = zipcode.slice(0, -1)
+  var latitude = req.query.lat
+  var longitude = req.query.lon
 
-  var country = getCountry(req)
+  var country = getCountry(latitude, longitude)
+
+  if (country === 'ERROR') {
+    res.status(500).send('Error fetching weather data');
+    return
+  }
+
   var unit = 'C'
   if (country === 'US') unit = 'F'
 
   var unit = unitsObj[unit]
 
-  var url = `https://api.openweathermap.org/data/2.5/weather?zip=${zipcode}&units=${unit}&appid=${apiKey}`
+  var url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=${unit}&appid=${apiKey}`
 
   try {
     const response = await fetch(url);
