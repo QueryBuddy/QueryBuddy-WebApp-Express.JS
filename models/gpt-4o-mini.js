@@ -48,6 +48,12 @@ async function newMessage(messages, prompt, model, type, urls, useSystem=true, s
                 function: appsConfig.appsData[appName]
             })
         }
+        if (!appsConfig.appsData[appName].clientSide) {
+            tools.push({
+                type: 'function',
+                function: appsConfig.appsData[appName]
+            })
+        }
     })
 
     try {
