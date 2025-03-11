@@ -116,8 +116,8 @@ body {
     border-radius: 100vh;
     border: solid 1px black;
     
-    display: grid;
-    grid-template-columns: auto 1fr auto auto;
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.25rem;
     /* overflow: hidden; */
 
