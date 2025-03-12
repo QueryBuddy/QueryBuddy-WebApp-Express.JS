@@ -230,6 +230,7 @@ body {
 }
 
 .send-btn {
+    height: 100%;
     aspect-ratio: 1;
     border: none;
     background-color: transparent;
