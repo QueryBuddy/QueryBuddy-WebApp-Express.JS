@@ -110,6 +110,7 @@ body {
     padding: 0.5rem;
     
     min-height: 50px;
+    height: fit-content;
     
     background-color: white;
 
@@ -223,6 +224,8 @@ body {
         border: none;
         outline: none;
         background-color: transparent;
+
+        field-sizing: content;
 
         /* display: grid; */
         align-content: center;

@@ -6,6 +6,7 @@ var maxUses = 10
 var maxMessage = `You will now exceed ${maxUses} continuous messages. Please <a href="javascript:location.reload()">Start a New Conversation</a> to send more messages.`
 var messageSpeed = 1
 
+var toolbar
 var chatElement
 var langElement
 var sendBtn
@@ -77,8 +78,8 @@ function addToPrompt(prompt) {
 }
 
 function sendMessage(prompt, showUserMessage=true) {
-  sendBtn.onclick = function() {}
-  chatElement.onkeyup = function() {}
+  sendBtn.removeEventListener('click', sendMessage)
+  chatElement.removeEventListener('input', checkForSend)
   if (!!prompt === false) prompt = chatElement.value
 
   var lPrompt = prompt.toLowerCase()
@@ -196,12 +197,22 @@ window.addEventListener('DOMContentLoaded', function (e) {
     dictChk.addEventListener('change', SpeechToText)
   }
 
-  chatElement = document.querySelector('.toolbar .input')
-  sendBtn = chatElement.parentNode.querySelector('.send-btn')
+  toolbar = document.querySelector('.toolbar')
+  chatElement = toolbar.querySelector('.input')
+
+  var supportsAutosize = CSS.supports("field-sizing: content");
+  if (!supportsAutosize) {
+    chatElement.addEventListener('input', (e) => {
+      e.target.style.height = "";
+      e.target.style.height = `${e.target.scrollHeight}px`
+    })
+  }
+
+  sendBtn = toolbar.querySelector('.send-btn')
 
   chatElement.focus()
-  chatElement.onkeyup = checkForSend
-  sendBtn.onclick = sendMessage
+  sendBtn.addEventListener('click', sendMessage)
+  chatElement.addEventListener('input', checkForSend)
 
   newRequest(
     'text', startingPrompt, null, null, 
@@ -362,16 +373,16 @@ function newMessage(role, content, moreParams={}) {
     else {
       textSpan.innerHTML = 'Unknown Error'
 
-      sendBtn.onclick = sendMessage
-      chatElement.onkeyup = checkForSend
-
+      sendBtn.addEventListener('click', sendMessage)
+      chatElement.addEventListener('input', checkForSend)
+    
       setScrollPos()
     }
     function doActs() {
       if (sI < content.length) {
-        sendBtn.onclick = function() {}
-        chatElement.onkeyup = function() {}
-
+        sendBtn.removeEventListener('click', sendMessage)
+        chatElement.removeEventListener('input', checkForSend)
+      
         textSpan.innerHTML = marked.parse(content.slice(0, sI+1))
         // textSpan.innerHTML = textSpan.innerHTML.replaceAll('&lt;', '<').replaceAll('&gt;', '>')
         sI++;
@@ -380,9 +391,9 @@ function newMessage(role, content, moreParams={}) {
         clearInterval(interval);
         specialActs4Conv(role, content, moreParams)
 
-        sendBtn.onclick = sendMessage
-        chatElement.onkeyup = checkForSend
-
+        sendBtn.addEventListener('click', sendMessage)
+        chatElement.addEventListener('input', checkForSend)
+      
         if (moreParams?.isApp) {
           var newContent = content
           if (moreParams?.modelContent) newContent = moreParams.modelContent
@@ -390,9 +401,9 @@ function newMessage(role, content, moreParams={}) {
     
         if (moreParams?.maxMessages && !moreParams?.isApp && !moreParams?.maxMessage) {
           chatElement.disabled = true
-          sendBtn.onclick = function() {}
-          chatElement.onkeyup = function() {}
-
+          sendBtn.removeEventListener('click', sendMessage)
+          chatElement.removeEventListener('input', checkForSend)
+        
           newMessage('error', maxMessage, {maxMessage: true})
         }
       }
@@ -402,9 +413,9 @@ function newMessage(role, content, moreParams={}) {
   else {
     textSpan.innerHTML = content  
 
-    sendBtn.onclick = sendMessage
-    chatElement.onkeyup = checkForSend
-
+    sendBtn.addEventListener('click', sendMessage)
+    chatElement.addEventListener('input', checkForSend)
+  
     setScrollPos()
   }
 }
@@ -424,8 +435,8 @@ function setScrollPos() {
 
 function SpeechToText() {
   chatElement.disabled = false
-  sendBtn.onclick = sendMessage
-  chatElement.onkeyup = checkForSend
+  sendBtn.addEventListener('click', sendMessage)
+  chatElement.addEventListener('input', checkForSend)
 
   if (oSpeechRecognizer) {
     if (chkSpeak.checked) {
@@ -445,9 +456,9 @@ function SpeechToText() {
 
   oSpeechRecognizer.onresult = function (e) {
     chatElement.disabled = true
-    sendBtn.onclick = function() {}
-    chatElement.onkeyup = function() {}
-
+    sendBtn.removeEventListener('click', sendMessage)
+    chatElement.removeEventListener('input', checkForSend)
+  
     var interimTranscripts = '';
     for (var i = e.resultIndex; i < e.results.length; i++) {
       var transcript = e.results[i][0].transcript;
@@ -458,8 +469,8 @@ function SpeechToText() {
         currValu = ''
 
         chatElement.disabled = false
-        sendBtn.onclick = sendMessage
-        chatElement.onkeyup = checkForSend
+        sendBtn.addEventListener('click', sendMessage)
+        chatElement.addEventListener('input', checkForSend)
       }
       else {
         interimTranscripts += transcript;
@@ -469,8 +480,8 @@ function SpeechToText() {
       }
 
       chatElement.disabled = false
-      sendBtn.onclick = sendMessage
-      chatElement.onkeyup = checkForSend
+      sendBtn.addEventListener('click', sendMessage)
+      chatElement.addEventListener('input', checkForSend)
     }
   };
 
