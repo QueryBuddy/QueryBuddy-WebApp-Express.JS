@@ -58,7 +58,7 @@ function newRequest(res, model, threadId, prompt, type, urls, voice, startingMes
       transcriptionRequest(path, threadId, res, model, startingMessage)
       break;
     default:
-      if (!model) model = config.defaultModel ?? `gpt-${4}o`
+      if (!model) model = config.defaultModel ?? Object.keys(models).find(m => !m.startsWith('_'))
       textRequest(res, threadId, prompt, model, type, urls, startingMessage)
       break;
   }
