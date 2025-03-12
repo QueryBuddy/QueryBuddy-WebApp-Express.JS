@@ -23,6 +23,7 @@
         box-sizing: border-box;
         padding: var(--padding);
 
+        height: 100%;
         aspect-ratio: 1;
         
         background-size: calc(100% - var(--padding)*2);
