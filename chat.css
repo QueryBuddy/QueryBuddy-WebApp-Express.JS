@@ -106,8 +106,10 @@ body {
 }
 
 .toolbar {
+    --padding: 0.5rem;
+
     box-sizing: border-box;
-    padding: 0.5rem;
+    padding: var(--padding);
     
     min-height: 50px;
     height: fit-content;
@@ -117,14 +119,15 @@ body {
     border-radius: 2rem;
     border: solid 1px black;
     
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: end;
     gap: 0.25rem;
     /* overflow: hidden; */
 
-    > * {
+    > *:not(.input) {
         height: 100%;
+        max-height: 2em;
     }
 
     editor-squiggler {
@@ -134,7 +137,6 @@ body {
     .upload-button {
         --transition: opacity 0.5s ease-out;
 
-        height: 100%;
         aspect-ratio: 1;
         border: inherit;
         border-width: 0;
@@ -220,7 +222,8 @@ body {
     }
     
     .input {
-        flex: 1;
+        height: 100%;
+        max-height: 25dvh;
         resize: none;
         border: none;
         outline: none;

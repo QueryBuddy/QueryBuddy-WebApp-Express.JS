@@ -12,6 +12,7 @@ var langElement
 var sendBtn
 var checkForSend = e => {
   if (e.keyCode === 13 && !e.shiftKey && chatElement.value !== '\n') {
+    e.preventDefault()
     sendMessage()
   }
 }
