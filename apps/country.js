@@ -1,10 +1,5 @@
 import fetch from 'node-fetch';
 
-var unitsObj = {
-  C: 'Metric', 
-  F: 'Imperial', 
-}
-
 export default async function(lat, lon) {
   var apiKey = process.env.OPENWEATHER_API_KEY;
   
