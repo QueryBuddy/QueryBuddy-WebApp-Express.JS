@@ -15,6 +15,31 @@ var modelConfig = {
     types: ['text', FileObj('image', 'audio')],
 }
 
+async function runTools(tool_calls, completion, message, response, messages, prompt, model, type, urls, useSystem, startingMessage) {
+    tool_calls.forEach(async toolCall => {
+        const name = toolCall.function.name;
+        const args = JSON.parse(toolCall.function.arguments);
+        
+        const result = await callFunction(name, args);
+        messages.push(message);
+        messages.push({
+            role: "tool", 
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(result.result)
+        });
+
+        if (result.callModel) {
+            completion = newMessage(messages, prompt, model, type, urls, useSystem, startingMessage)
+            response = {status: 'OK', content: completion.content}
+        }
+        else {
+            response = {isApp: true, name: name, args: args}
+        }
+    });
+
+    return await response
+}
+
 async function newMessage(messages, prompt, model, type, urls, useSystem=true, startingMessage) {
     // Prepare current message with any attachments
     var currentContent = [
@@ -57,36 +82,19 @@ async function newMessage(messages, prompt, model, type, urls, useSystem=true, s
             tools,
         });
 
-        var response = {status: 'OK', content: completion.choices[0].message.content}
+        var content = completion.choices[0].message.content
+        var response = {status: 'OK', content: content}
 
         var message = completion.choices[0].message
+
         var tool_calls = message.tool_calls
         if (tool_calls) {
-            tool_calls.forEach(toolCall => {
-                const name = toolCall.function.name;
-                const args = JSON.parse(toolCall.function.arguments);
-                
-                const result = callFunction(name, args);
-                messages.push(message);
-                messages.push({
-                    role: "tool", 
-                    tool_call_id: toolCall.id,
-                    content: JSON.stringify(result.result)
-                });
-
-                if (result.callModel) {
-                    completion = newMessage(messages, response, model, type, urls, useSystem, startingMessage)
-                    response = {status: 'OK', content: completion.content}
-                }
-                else {
-                    response = {isApp: true, name: name, args: args}
-                }
-            });
+            return await runTools(tool_calls, completion, message, response, messages, prompt, model, type, urls, useSystem, startingMessage)
         }
     
         return response
     } catch (error) {
-        console.log(error)
+        console.warn(error)
         const errorMsg = `Error: ${error.message}`
         return {status: 'error', content: errorMsg}
     }

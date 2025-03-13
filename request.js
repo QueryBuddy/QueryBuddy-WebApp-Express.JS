@@ -84,7 +84,7 @@ async function textRequest(res, threadId, prompt, model, type, urls, startingMes
   // Save user message to thread file
   addMessageToThread(threadId, {
     role: VALID_ROLES.USER,
-    content: prompt
+    content: prompt ?? ''
   })
 
   // Get previous messages from thread file

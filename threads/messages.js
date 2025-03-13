@@ -35,7 +35,7 @@ function addMessageToThread(threadId, message) {
 
         threadData.messages.push({
             role: message.role,
-            content: message.content,
+            content: (message.content === null ? '' : message.content) ?? '',
             timestamp: new Date().toISOString()
         })
         

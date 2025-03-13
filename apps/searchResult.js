@@ -15,15 +15,15 @@ export default async function({ query, searchType }) {
       qKey = 'imgurl'
   }
 
-  params = `&${params.join('&')}`
-  var url = `https://www.googleapis.com/customsearch/v1?key=${process.env.SEARCH_API_KEY}&cx=750a504f8a13f45f4&q=${query}${params}`
-  
+  params = params.length > 0 ? `&${params.join('&')}` : ''
+  var url = `https://www.googleapis.com/customsearch/v1?key=${process.env.SEARCH_API_KEY}&cx=750a504f8a13f45f4&q=${encodeURIComponent(query)}${params}`
+
   try {
     const response = await fetch(url);
     var body = await response.text();
     
     if (!body) {
-      throw new Error('Empty response received');
+      return 'Empty Response Recieved'
     }
 
     body = JSON.parse(body)

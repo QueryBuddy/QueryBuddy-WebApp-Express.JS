@@ -8,7 +8,7 @@ async function deleteThread(req, res) {
 
     try {
         const filePath = path.join(userThreadsDir, `${threadId}.json`)
-        fs.unlinkSync(filePath)
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
         res.json({ status: 'success', threadId })
     } catch (error) {
         res.status(404).json({ status: 'error', message: 'Thread not found' })
